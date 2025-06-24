@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from Domain.ValueObjects import StudentUuid
+from Domain.ValueObjects import StudentUuid, Email, Phone, ZipCode, Password
 
 @dataclass
 class Student:
@@ -7,9 +7,10 @@ class Student:
     name: str
     last_name: str
     age: int
-    email: str
-    phone: str
+    email: Email
+    phone: Phone
     address: str
     city: str
     state: str
-    zip_code: str
+    zip_code: ZipCode
+    password: Password
