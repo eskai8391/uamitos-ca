@@ -3,16 +3,16 @@ import re
 import uuid
 
 @dataclass(frozen=True)
-class StudentUuid:
+class Uuid:
     value: uuid.UUID
 
     @staticmethod
     def new():
-        return StudentUuid(uuid.uuid4())
+        return Uuid(uuid.uuid4())
 
     @staticmethod
     def from_str(value: str):
-        return StudentUuid(uuid.UUID(value))
+        return Uuid(uuid.UUID(value))
 
     def __str__(self):
         return str(self.value)
@@ -23,8 +23,8 @@ class Email:
     value: str
 
     def __post_init__(self):
-        if not re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", self.value):
-            raise ValueError(f"Email inv\u00e1lido: {self.value}")
+        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", self.value):
+            raise ValueError(f"Email inválido: {self.value}")
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,7 @@ class Phone:
 
     def __post_init__(self):
         if not re.match(r"^\d{10}$", self.value):
-            raise ValueError("El tel\u00e9fono debe tener exactamente 10 d\u00edgitos.")
+            raise ValueError("El teléfono debe tener exactamente 10 dígitos.")
 
 
 @dataclass(frozen=True)
@@ -42,7 +42,7 @@ class ZipCode:
 
     def __post_init__(self):
         if not re.match(r"^\d{5}$", self.value):
-            raise ValueError("El c\u00f3digo postal debe tener 5 d\u00edgitos.")
+            raise ValueError("El código postal debe tener 5 dígitos.")
 
 
 @dataclass(frozen=True)
@@ -51,12 +51,12 @@ class Password:
 
     def __post_init__(self):
         if len(self.value) < 8:
-            raise ValueError("La contrase\u00f1a debe tener al menos 8 caracteres.")
+            raise ValueError("La contraseña debe tener al menos 8 caracteres.")
         if not re.search(r"[A-Z]", self.value):
-            raise ValueError("La contrase\u00f1a debe tener al menos una letra may\u00fascula.")
+            raise ValueError("La contraseña debe tener al menos una letra mayúscula.")
         if not re.search(r"[a-z]", self.value):
-            raise ValueError("La contrase\u00f1a debe tener al menos una letra min\u00fascula.")
+            raise ValueError("La contraseña debe tener al menos una letra minúscula.")
         if not re.search(r"\d", self.value):
-            raise ValueError("La contrase\u00f1a debe contener al menos un n\u00famero.")
+            raise ValueError("La contraseña debe contener al menos un número.")
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", self.value):
-            raise ValueError("La contrase\u00f1a debe contener al menos un s\u00edmbolo especial.")
+            raise ValueError("La contraseña debe contener al menos un símbolo especial.")

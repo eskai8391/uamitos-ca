@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from Domain.ValueObjects import StudentUuid, Email, Phone, ZipCode, Password
+
+from Domain.Entities.BaseEntity import BaseEntity
+from Domain.ValueObjects import Email, Phone, ZipCode, Password
 
 @dataclass
-class Student:
-    id: StudentUuid
+class Student(BaseEntity):
     name: str
     last_name: str
     age: int

@@ -1,13 +1,14 @@
 from Domain.Entities.Student import Student
-from Domain.ValueObjects import StudentUuid, Email, Phone, ZipCode, Password
+from Domain.ValueObjects import Uuid, Email, Phone, ZipCode, Password
+from Domain.Repositories.IBaseEntityRepository import IBaseEntityRepository
 
 class StudentUseCases:
-    def __init__(self):
-        self.students = []
+    def __init__(self, repository: IBaseEntityRepository[Student]):
+        self._repository = repository
 
     def register_student(self, name, last_name, age, email, phone, address, city, state, zip_code, password):
         student = Student(
-            id=StudentUuid.new(),
+            uuid=Uuid.new(),
             name=name,
             last_name=last_name,
             age=int(age),
@@ -19,5 +20,5 @@ class StudentUseCases:
             zip_code=ZipCode(zip_code),
             password=Password(password)
         )
-        self.students.append(student)
+        self.repository.create(student)
         return student
