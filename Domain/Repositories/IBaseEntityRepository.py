@@ -29,7 +29,7 @@ class IBaseEntityRepository(ABC, Generic[E, M]):
         pass
 
     @abstractmethod
-    def create(self) -> E:
+    def create(self, entity: E) -> E | None:
         """
         Creates an entity
 

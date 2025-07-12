@@ -4,7 +4,7 @@ from Domain.Repositories.IBaseEntityRepository import IBaseEntityRepository
 
 class StudentUseCases:
     def __init__(self, repository: IBaseEntityRepository[Student]):
-        self._repository = repository
+        self.__repository = repository
 
     def register_student(self, name, last_name, age, email, phone, address, city, state, zip_code, password):
         student = Student(
@@ -20,5 +20,5 @@ class StudentUseCases:
             zip_code=ZipCode(zip_code),
             password=Password(password)
         )
-        self.repository.create(student)
+        self.__repository.create(student)
         return student
