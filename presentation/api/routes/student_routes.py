@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from Domain.Entities.Student import Student
-from Infraestructure.Database.Db import SessionLocal
-from Infraestructure.Repositories.StudentRepository import StudentRepository
+from domain.entities.student import Student
+from infrastructure.database.db import SessionLocal
+from infrastructure.repositories.student_repository import StudentRepository
 
 router = APIRouter()
 

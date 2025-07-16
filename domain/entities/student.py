@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from Domain.Entities.BaseEntity import BaseEntity
-from Domain.ValueObjects import Email, Phone, ZipCode, Password
+from domain.entities.base_entity import BaseEntity
+from domain.value_objects import Email, Phone, ZipCode, Password
 
 @dataclass
 class Student(BaseEntity):

@@ -2,13 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# DATABASE_URL = "postgresql+psycopg2://admin:admin@localhost:5432/uamitosca-database?client_encoding=utf8"
-
 DATABASE_URL = {
     "database": "uamitosca-database",
     "drivername": "postgresql+psycopg2",
     "username": "postgres",
-    "password": "admin",
+    "password": "root",
     "host": "localhost",
     "port": "5432",
     "query": {"client_encoding": "utf8"}

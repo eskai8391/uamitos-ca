@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from API.Routes import StudentRoutes
-from Infraestructure.Database.Db import Base, engine
+from presentation.api.routes import student_routes
+from infrastructure.database.db import Base, engine
 
 app = FastAPI(swagger_ui_parameters={
     "syntaxHighlight": False
