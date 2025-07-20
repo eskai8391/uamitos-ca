@@ -1,4 +1,6 @@
-from application.use_cases.student_use_cases import StudentUseCases, DeleteStudentRequest, UpdateStudentRequest, RegisterStudentRequest
+from application.use_cases.student_use_cases import (
+    StudentUseCases, DeleteStudentRequest, UpdateStudentRequest,
+    RegisterStudentRequest)
 
 class StudentPresenter:
     def __init__(self, use_cases: StudentUseCases):

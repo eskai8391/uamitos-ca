@@ -8,17 +8,12 @@ from .base_widget_builder import BaseWidgetBuilder
 class LabelWidgetBuilder(BaseWidgetBuilder):
     def __init__(self):
         super().__init__()
-        self.__widget = QLabel()
+        self._widget = QLabel()
 
     def set_text(self, text) -> Self:
         """
-        Set the text of the widget.
-        :arg text: The text of the widget.
+        Set the text of the label.
+        :arg text: The text of the label.
         """
-        self.__widget.setText(text)
+        self._widget.setText(text)
         return self
-
-    def build(self) -> QLabel:
-        self.__apply_common_properties(self.__widget)
-
-        return self.__widget

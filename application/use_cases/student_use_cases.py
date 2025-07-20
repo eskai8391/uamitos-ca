@@ -2,7 +2,7 @@ from typing import Any, Optional, List
 from dataclasses import dataclass
 
 from domain.entities.student import Student
-from domain.errors.EntityNotFoundError import EntityNotFoundError
+from domain.errors.entity_not_found_error import EntityNotFoundError
 from domain.services import PasswordHasher
 from domain.value_objects import Uuid, Email, Phone, ZipCode, Password
 from domain.repositories.base_entity_repository import BaseEntityRepository
@@ -51,8 +51,8 @@ class StudentUseCases:
             name        = request.name,
             last_name   = request.last_name,
             age         = request.age,
-            email       = Email(request.email),
-            phone       = Phone(request.phone),
+            email       = request.email,
+            phone       = request.phone,
             address     = request.address,
             city        = request.city,
             state       = request.state,

@@ -1,11 +1,15 @@
-from fastapi import FastAPI
-from presentation.api.routes import student_routes
-from infrastructure.database.db import Base, engine
+from PySide6.QtWidgets import QApplication
+from application.container import AppContainer
 
-app = FastAPI(swagger_ui_parameters={
-    "syntaxHighlight": False
-})
+def main():
+    # Initialize
+    app = QApplication([])
+    container = AppContainer()
 
-Base.metadata.create_all(bind=engine)
+    # Build main window with login page
+    window = container.main_window_builder().build()
+    window.show()
+    app.exec()
 
-app.include_router(StudentRoutes.router)
+if __name__ == '__main__':
+    main()

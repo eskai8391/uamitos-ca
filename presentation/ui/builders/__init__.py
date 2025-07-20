@@ -1,5 +1,3 @@
-from .layout_builder import LayoutBuilder
-from .widget_builder import WidgetBuilder
-from .window_builder import WindowBuilder
-
+from .widgets.base_widget_builder import BaseWidgetBuilder
+from .layouts.base_layout_builder import BaseLayoutBuilder
 
