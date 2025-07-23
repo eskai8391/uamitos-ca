@@ -22,4 +22,4 @@ class WidgetFactory:
             builder_cls = self.__builders_map[kind]
         except KeyError:
             raise KeyError(f"Unknown widget type: {kind}")
-        return builder_cls().create()
+        return builder_cls()

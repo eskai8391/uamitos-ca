@@ -4,9 +4,10 @@ from PySide6.QtWidgets import QGridLayout, QWidget
 from .base_layout_builder import BaseLayoutBuilder
 
 class GridLayoutBuilder(BaseLayoutBuilder):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, is_container: bool = False):
+        super().__init__(is_container)
         self._cells: list[tuple[QWidget,int,int,int,int, int]] = []
+        self._layout = QGridLayout()
 
     @property
     def cells(self) -> list[tuple[QWidget,int,int,int,int, int]]:
@@ -25,11 +26,10 @@ class GridLayoutBuilder(BaseLayoutBuilder):
         return self
 
     def build(self) -> QGridLayout:
-        layout = QGridLayout()
-        self._apply_common(layout, layout.parentWidget() or layout)
+        self._apply_common()
         for widget, r, c, rs, cs, st in self._cells:
-            layout.addWidget(widget, r, c, rs, cs)
+            self._layout.addWidget(widget, r, c, rs, cs)
             if st:
-                layout.setRowStretch(r, st)
-                layout.setColumnStretch(c, st)
-        return layout
+                self._layout.setRowStretch(r, st)
+                self._layout.setColumnStretch(c, st)
+        return self._layout if self._container is None else self._container

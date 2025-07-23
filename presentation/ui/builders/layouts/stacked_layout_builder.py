@@ -4,10 +4,11 @@ from PySide6.QtWidgets import QStackedLayout, QWidget
 from .base_layout_builder import BaseLayoutBuilder
 
 class StackedLayoutBuilder(BaseLayoutBuilder):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, is_container: bool = False):
+        super().__init__(is_container)
         self._widgets: list[QWidget] = []
         self._current_index: int = 0
+        self._layout = QStackedLayout()
 
     @property
     def widgets(self) -> List[QWidget]:
@@ -26,9 +27,8 @@ class StackedLayoutBuilder(BaseLayoutBuilder):
         return self
 
     def build(self) -> QStackedLayout:
-        layout = QStackedLayout()
-        self._apply_common(layout, layout)
+        self._apply_common()
         for w in self._widgets:
-            layout.addWidget(w)
-        layout.setCurrentIndex(self._current_index)
-        return layout
+            self._layout.addWidget(w)
+        self._layout.setCurrentIndex(self._current_index)
+        return self._layout if self._container is None else self._container

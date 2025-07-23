@@ -49,7 +49,7 @@ class BaseWidgetBuilder(ABC):
         Builds the widget
         :return: The built widget
         """
-        self.__apply_common_properties(self._widget)
+        self.__apply_common_properties()
         return self._widget
 
     def clone(self) -> Self:
@@ -148,37 +148,37 @@ class BaseWidgetBuilder(ABC):
         self._alignment = alignment
         return self
 
-    def __apply_common_properties(self, widget: QWidget):
+    def __apply_common_properties(self):
         """
         Auxiliar method to apply common properties
         """
         if self._x is not None and self._y is not None and \
            self._width is not None and self._height is not None:
-            widget.setGeometry(self._x, self._y, self._width, self._height)
+            self._widget.setGeometry(self._x, self._y, self._width, self._height)
 
         if self._fixed_width is not None and self._fixed_height is not None:
-            widget.setFixedSize(self._fixed_width, self._fixed_height)
+            self._widget.setFixedSize(self._fixed_width, self._fixed_height)
 
         if self._size_policy_horizontal is not None and self._size_policy_vertical is not None:
             size_policy = QSizePolicy(self._size_policy_horizontal, self._size_policy_vertical)
-            widget.setSizePolicy(size_policy)
+            self._widget.setSizePolicy(size_policy)
 
         if self._obj_name is not None:
-            widget.setObjectName(self._obj_name)
+            self._widget.setObjectName(self._obj_name)
 
         if self._style_sheet is not None:
-            widget.setStyleSheet(self._style_sheet)
+            self._widget.setStyleSheet(self._style_sheet)
 
         # Font configuration
-        current_font = widget.font()
+        current_font = self._widget.font()
         if self._font_size is not None:
             current_font.setPointSize(self._font_size)
         if self._font_bold is not None:
             current_font.setBold(self._font_bold)
         if self._font_family is not None:
             current_font.setFamily(self._font_family)
-        widget.setFont(current_font)
+        self._widget.setFont(current_font)
 
         # Alignment configuration
-        if self._alignment is not None and hasattr(widget, 'setAlignment'):
-            widget.setAlignment(self._alignment)
+        if self._alignment is not None and hasattr(self._widget, 'setAlignment'):
+            self._widget.setAlignment(self._alignment)

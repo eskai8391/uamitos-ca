@@ -5,7 +5,12 @@ from presentation.ui.factories import WidgetFactory, LayoutFactory
 
 
 class MainWindowBuilder:
-    def __init__(self, widget_factory: WidgetFactory, layout_factory: LayoutFactory, page_builders: Dict[str, Callable[[], QWidget]]):
+    def __init__(
+            self,
+            widget_factory: WidgetFactory,
+            layout_factory: LayoutFactory,
+            page_builders: Dict[str, Callable[[], QWidget]]
+    ):
         self.__wf = widget_factory
         self.__lf = layout_factory
         self.__page_builders = page_builders
@@ -15,7 +20,7 @@ class MainWindowBuilder:
 
     def build(self) -> QMainWindow:
         self.__window.setWindowTitle("Uamitos-CA")
-        self.__window.setFixedSize(600, 200)
+        self.__window.setFixedSize(500, 580)
 
         for idx, (name, builder) in enumerate(self.__page_builders.items()):
             self.__page_indexes[name] = idx

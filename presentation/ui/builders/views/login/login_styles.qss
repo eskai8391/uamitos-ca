@@ -1,1 +1,41 @@
-#line
+QWidget#container {
+    background: #fdf6ed;
+}
+
+QLabel {
+    color: #0a0907;
+}
+
+QWidget#left_pane{
+    background: #6e96a6;
+}
+
+QLineEdit,
+QPushButton {
+    font-size: 16px;
+
+    padding: 10px;
+
+    border-radius: 20px;
+}
+
+
+QLineEdit {
+    color: #0a0907;
+
+    border: 2px solid #6e96a6;
+    background: transparent;
+}
+
+QPushButton{
+    margin: 30px 0px 0px 0px;
+
+    background: #6e96a6;
+}
+
+QPushButton:hover{
+    color: #6e96a6;
+
+    border: 2px solid #6e96a6;
+    background: transparent;
+}

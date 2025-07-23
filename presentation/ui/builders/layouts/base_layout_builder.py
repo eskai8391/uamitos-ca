@@ -12,10 +12,12 @@ class BaseLayoutBuilder(ABC):
     Defines the base methods of a layout builder
     """
 
-    def __init__(self):
+    def __init__(self, is_container: bool = False):
         """
         Instantiates the base attributes for layouts configurations
+        :param is_container: True if the layout will be a container of other layouts
         """
+        self._container = QWidget() if is_container else None
 
         self._margin: Optional[int] = None
         self._spacing: Optional[int] = None
@@ -24,6 +26,8 @@ class BaseLayoutBuilder(ABC):
         self._fixed_width: Optional[int] = None
         self._fixed_height: Optional[int] = None
         self._layout: Optional[QLayout] = None
+        self._style_sheet: Optional[str] = None
+        self._class_name: Optional[str] = None
 
     def create(self) -> Self:
         """
@@ -38,13 +42,6 @@ class BaseLayoutBuilder(ABC):
         :return: The built layout
         """
         pass
-
-    def clone(self) -> Self:
-        """
-        Clones the layout
-        :return: The cloned layout
-        """
-        return copy.deepcopy(self)
 
     @property
     def margin(self) -> int:
@@ -112,17 +109,42 @@ class BaseLayoutBuilder(ABC):
         self._fixed_height = height
         return self
 
-    def _apply_common(self, layout: QLayout, container: QWidget):
+    def set_style_sheet(self, css: Optional[str] = None, route: Optional[str] = None) -> Self:
+        if css is not None and route is None:
+            self._style_sheet = css
+
+        if route is not None and css is None:
+            with open(route, "r") as file:
+                self._style_sheet = file.read()
+
+        return self
+
+    def set_class(self, class_name: str) -> Self:
+        self._class_name = class_name
+        return self
+
+    def _apply_common(self):
         """
         Applies the common layout
         :param layout: The layout to apply
         :param container: The container to apply the layout
         """
         if self._margin is not None:
-            layout.setContentsMargins(*([self._margin] * 4))
+            self._layout.setContentsMargins(*([self._margin] * 4))
         if self._spacing is not None:
-            layout.setSpacing(self._spacing)
-        if self._alignment is not None and hasattr(container, "setAlignment"):
-            container.setAlignment(self._alignment)
-        if self._fixed_width and self._fixed_height:
-            container.setFixedSize(self._fixed_width, self._fixed_height)
+            self._layout.setSpacing(self._spacing)
+
+        if self._container is not None:
+            self._container.setLayout(self._layout)
+
+            if self._class_name is not None:
+                self._container.setObjectName(self._class_name)
+
+            if self._alignment is not None and hasattr(self._container, "setAlignment"):
+                self._container.setAlignment(self._alignment)
+
+            if self._fixed_width and self._fixed_height:
+                self._container.setFixedSize(self._fixed_width, self._fixed_height)
+
+            if self._style_sheet is not None:
+                self._container.setStyleSheet(self._style_sheet)

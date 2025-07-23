@@ -4,8 +4,9 @@ from PySide6.QtWidgets import QFormLayout, QWidget
 from .base_layout_builder import BaseLayoutBuilder
 
 class FormLayoutBuilder(BaseLayoutBuilder):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, is_container: bool = False):
+        super().__init__(is_container)
+        self._layout = QFormLayout()
         self._rows: list[tuple[str, QWidget]] = []
 
     @property
@@ -20,8 +21,7 @@ class FormLayoutBuilder(BaseLayoutBuilder):
         pass
 
     def build(self) -> QFormLayout:
-        layout = QFormLayout()
-        self._apply_common(layout, layout.parentWidget() or layout)
+        self._apply_common()
         for lab, wid in self._rows:
-            layout.addRow(lab, wid)
-        return layout
+            self._layout.addRow(lab, wid)
+        return self._layout if self._container is None else self._container
