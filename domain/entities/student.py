@@ -1,17 +1,17 @@
 from dataclasses import dataclass
 
-from domain.entities.base_entity import BaseEntity
-from domain.value_objects import Email, Phone, ZipCode, Password
+from domain.entities.user import User, UserRole
+from domain.value_objects import Email, Phone, ZipCode, Password, Uuid
+
 
 @dataclass
-class Student(BaseEntity):
-    name: str
-    last_name: str
+class Student(User):
     age: int
-    email: Email
     phone: Phone
     address: str
     city: str
     state: str
     zip_code: ZipCode
-    password: Password
+    
+    def __post_init__(self):
+        self.role = UserRole.STUDENT

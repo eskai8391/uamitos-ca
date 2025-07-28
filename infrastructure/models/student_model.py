@@ -1,16 +1,18 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from infrastructure.database.db import Base
 
+
 class StudentModel(Base):
-    __tablename__ = 'student'
-    uuid = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    last_name = Column(String)
-    age = Column(Integer)
-    email = Column(String, unique=True)
+    __tablename__ = 'students'
+    
+    uuid = Column(String, ForeignKey("users.uuid"), primary_key=True)
     phone = Column(String)
     address = Column(String)
     city = Column(String)
     state = Column(String)
     zip_code = Column(String)
-    password = Column(String)
+    age = Column(Integer)
+    
+    # Relationship with UserModel
+    user = relationship("UserModel", backref="student_profile")

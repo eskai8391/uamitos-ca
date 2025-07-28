@@ -1,3 +1,5 @@
+/* Login Window Styles */
+
 QWidget#container {
     background: #fdf6ed;
 }
@@ -10,32 +12,52 @@ QWidget#left_pane{
     background: #6e96a6;
 }
 
+QLabel[objectName="header"] {
+    color: #003366;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
 QLineEdit,
 QPushButton {
     font-size: 16px;
-
     padding: 10px;
-
     border-radius: 20px;
 }
 
-
 QLineEdit {
     color: #0a0907;
-
     border: 2px solid #6e96a6;
     background: transparent;
 }
 
-QPushButton{
+QLineEdit:focus {
+    border: 2px solid #003366;
+}
+
+QPushButton#action_button {
     margin: 30px 0px 0px 0px;
-
     background: #6e96a6;
+    color: white;
+    font-weight: bold;
 }
 
-QPushButton:hover{
+QPushButton#action_button:hover {
     color: #6e96a6;
-
     border: 2px solid #6e96a6;
     background: transparent;
+}
+
+QPushButton#action_button:pressed {
+    background: #003366;
+    color: white;
+}
+
+QLabel[objectName="error-label"] {
+    color: #D32F2F;
+    font-size: 14px;
+    margin: 10px 0;
+    padding: 5px;
 }

@@ -1,0 +1,52 @@
+/* Dashboard Styles */
+
+.dashboard-container {
+    background-color: #F0F0F5;
+    padding: 10px;
+}
+
+#app-title {
+    color: #003366;
+    padding: 10px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+#user-info {
+    color: #555;
+    font-size: 14px;
+    padding-right: 15px;
+}
+
+#logout-button {
+    background-color: #D32F2F;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 4px;
+}
+
+#logout-button:hover {
+    background-color: #B71C1C;
+}
+
+#nav-button {
+    background-color: #003366;
+    color: white;
+    border: none;
+    text-align: left;
+    padding: 12px 20px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#nav-button:hover {
+    background-color: #004C99;
+}
+
+#placeholder {
+    color: #777;
+    font-size: 18px;
+    font-style: italic;
+}

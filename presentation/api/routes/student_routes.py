@@ -1,17 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from domain.entities.student import Student
-from infrastructure.database.db import SessionLocal
+from infrastructure.database import get_db
 from infrastructure.repositories.student_repository import StudentRepository
 
 router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/students", response_model=list[Student])
 def get_students(db: Session = Depends(get_db)):

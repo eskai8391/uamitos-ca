@@ -1,0 +1,24 @@
+# Web framework
+fastapi==0.103.2
+uvicorn==0.23.2
+pydantic==2.4.2
+
+# Database
+sqlalchemy==2.0.22
+psycopg2-binary==2.9.9
+alembic==1.12.0
+
+# Security
+bcrypt==4.0.1
+pyjwt==2.8.0
+python-multipart==0.0.6
+
+# GUI
+PySide6==6.5.3
+
+# PDF Generation
+reportlab==4.0.7
+
+# Testing
+pytest==7.4.2
+httpx==0.25.0

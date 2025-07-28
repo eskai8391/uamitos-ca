@@ -1,13 +1,15 @@
-# presentation/ui/builders/base_layout_builder.py
+# presentation/ui/builders/layouts/base_layout_builder.py
 import copy
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Self, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QLayout, QWidget, QSizePolicy
 )
 
-class BaseLayoutBuilder(ABC):
+from presentation.ui.builders.builder_interface import Builder
+
+class BaseLayoutBuilder(Builder):
     """
     Defines the base methods of a layout builder
     """
@@ -34,6 +36,13 @@ class BaseLayoutBuilder(ABC):
         Creates a new instance of the layout builder
         """
         return type(self)()
+        
+    def clone(self) -> Self:
+        """
+        Creates a deep copy of the builder
+        :return: A cloned builder instance
+        """
+        return copy.deepcopy(self)
 
     @abstractmethod
     def build(self) -> QLayout:

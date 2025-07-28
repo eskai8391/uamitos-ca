@@ -1,12 +1,17 @@
 import copy
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Self, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QSizePolicy
 
+from presentation.ui.builders.builder_interface import Builder
+from presentation.ui.builders.utils.validation import (
+    validate_not_none, validate_min_value, validate_string_not_empty, validate_type
+)
 
-class BaseWidgetBuilder(ABC):
+
+class BaseWidgetBuilder(Builder):
     """
     Defines the base methods of a widget builder
     """
@@ -49,7 +54,7 @@ class BaseWidgetBuilder(ABC):
         Builds the widget
         :return: The built widget
         """
-        self.__apply_common_properties()
+        self._apply_common_properties()
         return self._widget
 
     def clone(self) -> Self:
@@ -69,7 +74,15 @@ class BaseWidgetBuilder(ABC):
         :arg y: The y position of the widget
         :arg width: The width of the widget
         :arg height: The height of the widget
+        :raises ValidationError: If any parameter is invalid
         """
+        validate_type(x, "x", int)
+        validate_type(y, "y", int)
+        validate_type(width, "width", int)
+        validate_type(height, "height", int)
+        validate_min_value(width, "width", 0)
+        validate_min_value(height, "height", 0)
+        
         self._x = x
         self._y = y
         self._width = width
@@ -82,7 +95,13 @@ class BaseWidgetBuilder(ABC):
 
         :arg width: The width of the widget
         :arg height: The height of the widget
+        :raises ValidationError: If any parameter is invalid
         """
+        validate_type(width, "width", int)
+        validate_type(height, "height", int)
+        validate_min_value(width, "width", 0)
+        validate_min_value(height, "height", 0)
+        
         self._fixed_width = width
         self._fixed_height = height
         return self
@@ -105,11 +124,25 @@ class BaseWidgetBuilder(ABC):
         Applies a style sheet to the widget
 
         :arg css: The style sheet of the widget
+        :raises ValidationError: If css is not a string or is None
         """
+        validate_not_none(css, "css")
+        validate_type(css, "css", str)
+        
         self._style_sheet = css
         return self
 
     def set_object_name(self, name: str) -> Self:
+        """
+        Sets the object name of the widget
+        
+        :arg name: The object name to set
+        :raises ValidationError: If name is not a string or is None or empty
+        """
+        validate_not_none(name, "name")
+        validate_type(name, "name", str)
+        validate_string_not_empty(name, "name")
+        
         self._obj_name = name
         return self
 
@@ -148,7 +181,7 @@ class BaseWidgetBuilder(ABC):
         self._alignment = alignment
         return self
 
-    def __apply_common_properties(self):
+    def _apply_common_properties(self):
         """
         Auxiliar method to apply common properties
         """

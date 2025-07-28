@@ -1,1 +1,1 @@
-from password_hasher import PasswordHasher
+from .password_hasher import PasswordHasher
