@@ -13,16 +13,27 @@ class ApiClientException(Exception):
 class ApiClient:
     """Base client for making HTTP requests to the API"""
     
+    _instance: Optional['ApiClient'] = None
+    _token: Optional[str] = None
+    
+    def __new__(cls, base_url: str = "http://localhost:8000"):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
     def __init__(self, base_url: str = "http://localhost:8000"):
         """
         Initialize the API client
         
         :param base_url: Base URL of the API
         """
+        if hasattr(self, '_initialized'):
+            return
+            
         self._base_url = base_url.rstrip("/")  # Remove trailing slash if present
         self._logger = logging.getLogger(__name__)
-        self._token: Optional[str] = None
         self._api_available = self._check_api_available()
+        self._initialized = True
         
     def _check_api_available(self) -> bool:
         """
@@ -37,18 +48,20 @@ class ApiClient:
             self._logger.warning("API server not available. Using fallback authentication.")
             return False
     
-    def set_token(self, token: str) -> None:
+    @classmethod
+    def set_token(cls, token: str) -> None:
         """
-        Set authentication token for subsequent requests
+        Set authentication token for all instances
         
         :param token: JWT token
         """
-        self._token = token
-        self._logger.info(f"API token set: {token[:10]}... (token length: {len(token)})")
+        cls._token = token
+        logging.getLogger(__name__).info(f"Global API token set: {token[:10]}... (token length: {len(token)})")
     
-    def clear_token(self) -> None:
-        """Clear authentication token"""
-        self._token = None
+    @classmethod
+    def clear_token(cls) -> None:
+        """Clear authentication token for all instances"""
+        cls._token = None
     
     def get_auth_headers(self) -> Dict[str, str]:
         """

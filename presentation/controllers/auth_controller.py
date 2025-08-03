@@ -12,8 +12,8 @@ class AuthController:
     
     def __init__(self, api_client: Optional[ApiClient] = None):
         self._logger = logging.getLogger(__name__)
-        # Use shared ApiClient instance if provided
-        self._api_client = api_client
+        # Use shared ApiClient instance if provided, otherwise create one
+        self._api_client = api_client if api_client else ApiClient()
         self._auth_client = AuthClient(api_client=self._api_client)
         self._current_user: Optional[LoginResponse] = None
     
@@ -35,10 +35,9 @@ class AuthController:
                 self._logger.info(f"Login successful for {email}")
                 self._current_user = response
                 
-                # Ensure token is set on the shared API client
-                if self._api_client:
-                    self._api_client.set_token(response.token)
-                    self._logger.info(f"Token set on shared API client: {id(self._api_client)}")
+                # Set token globally for all ApiClient instances
+                ApiClient.set_token(response.token)
+                self._logger.info(f"Token set globally for all API clients")
                     
                 return response
             else:
@@ -75,6 +74,8 @@ class AuthController:
         if self._current_user:
             self._logger.info(f"User {self._current_user.email} logged out")
             self._current_user = None
+            # Clear token globally
+            ApiClient.clear_token()
     
     def get_role(self) -> Optional[str]:
         """
