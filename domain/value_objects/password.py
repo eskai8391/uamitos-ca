@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class Password:
-    value: str
+    __value: str
 
     @classmethod
     def create(cls, plain_value: str, hasher_service: "PasswordHasher") -> "Password":
@@ -32,9 +32,9 @@ class Password:
 
     def verify_password(self, plain_value: str, hasher_service: "PasswordHasher") -> bool:
         try:
-            return hasher_service.verify_password(plain_value, self.value)
+            return hasher_service.verify_password(plain_value, self.__value)
         except Exception:
             return False
 
     def __str__(self) -> str:
-        return self.value
+        return self.__value

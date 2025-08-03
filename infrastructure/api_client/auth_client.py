@@ -48,6 +48,7 @@ class AuthClient:
                     
                     # Store token for future API requests
                     self._api_client.set_token(login_response.token)
+                    self._logger.info(f"Token set in AuthClient on ApiClient instance: {id(self._api_client)}")
                     return login_response
                 except ApiClientException:
                     return None

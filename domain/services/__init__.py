@@ -1,1 +1,2 @@
 from .password_hasher import PasswordHasher
+from .profile_image_service import ProfileImageService

@@ -1,0 +1,243 @@
+/* Teacher Dashboard Styles */
+
+/* Main Container */
+#teacher-dashboard-container {
+    background-color: #f5f7fd;
+    padding: 20px;
+}
+
+/* Welcome Section */
+#welcome-container {
+    background-color: #673ab7;
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+#welcome-message {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#welcome-description {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+#action-button {
+    background-color: #ffd740;
+    color: #673ab7;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-weight: bold;
+}
+
+#teacher-image {
+    font-size: 64px;
+    color: white;
+}
+
+/* Metric Cards */
+#metric-card-blue, #metric-card-green, #metric-card-pink, #metric-card-orange {
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+    color: white;
+}
+
+#metric-card-blue {
+    background-color: #4285f4;
+}
+
+#metric-card-green {
+    background-color: #34a853;
+}
+
+#metric-card-pink {
+    background-color: #ea4c89;
+}
+
+#metric-card-orange {
+    background-color: #fbbc05;
+}
+
+#metric-title-blue, #metric-title-green, #metric-title-pink, #metric-title-orange {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+}
+
+#metric-value-blue, #metric-value-green, #metric-value-pink, #metric-value-orange {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+#metric-icon-blue, #metric-icon-green, #metric-icon-pink, #metric-icon-orange {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 30px;
+}
+
+/* Attendance Chart */
+#chart-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+}
+
+#chart-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+}
+
+#bar-present {
+    background-color: #673ab7;
+    width: 40px;
+    margin: 0 15px;
+    border-radius: 5px 5px 0 0;
+}
+
+#legend-present {
+    background-color: #673ab7;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+#legend-absent {
+    background-color: #ddd;
+    border-radius: 3px;
+    margin-right: 5px;
+    margin-left: 15px;
+}
+
+#month-label {
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Student List */
+#student-info-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+}
+
+#see-all-link {
+    color: #673ab7;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#table-header {
+    color: #666;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#student-row {
+    background-color: white;
+    border-radius: 8px;
+    margin: 5px 0;
+}
+
+#student-row:nth-child(odd) {
+    background-color: #efefef;
+}
+
+#student-avatar {
+    font-size: 24px;
+}
+
+#student-name, #student-class, #student-fees, #student-due-date {
+    color: #333;
+}
+
+#status-payment-due {
+    color: #fbbc05;
+    background-color: rgba(251, 188, 5, 0.1);
+    border-radius: 15px;
+    padding: 5px 10px;
+}
+
+#status-payment-late {
+    color: #ea4335;
+    background-color: rgba(234, 67, 53, 0.1);
+    border-radius: 15px;
+    padding: 5px 10px;
+}
+
+#status-approved {
+    color: #34a853;
+    background-color: rgba(52, 168, 83, 0.1);
+    border-radius: 15px;
+    padding: 5px 10px;
+}
+
+#status-request-sent {
+    color: #4285f4;
+    background-color: rgba(66, 133, 244, 0.1);
+    border-radius: 15px;
+    padding: 5px 10px;
+}
+
+#student-actions {
+    color: #666;
+    font-weight: bold;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Teachers Section */
+#teachers-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+}
+
+#teacher-list-label {
+    color: #666;
+    margin: 10px 0;
+}
+
+#teacher-avatars-container {
+    margin: 10px 0;
+}
+
+[id^="teacher-avatar-"] {
+    background-color: #efefef;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin: 0 5px;
+    font-size: 28px;
+    text-align: center;
+}
+
+#add-teacher-label {
+    color: #666;
+    margin: 10px 0;
+}
+
+#email-input {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px;
+    margin-right: 10px;
+}
+
+#invite-button {
+    background-color: #673ab7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+}

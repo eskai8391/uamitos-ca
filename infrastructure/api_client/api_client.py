@@ -44,6 +44,7 @@ class ApiClient:
         :param token: JWT token
         """
         self._token = token
+        self._logger.info(f"API token set: {token[:10]}... (token length: {len(token)})")
     
     def clear_token(self) -> None:
         """Clear authentication token"""
@@ -52,12 +53,15 @@ class ApiClient:
     def get_auth_headers(self) -> Dict[str, str]:
         """
         Get authentication headers for requests
-        
+
         :return: Headers dictionary with auth token if available
         """
-        headers = {"Content-Type": "application/json"}
+        headers: Dict[str, str] = {}
         if self._token:
             headers["Authorization"] = f"Bearer {self._token}"
+            self._logger.debug(f"Adding auth header with token: {self._token[:10]}...")
+        else:
+            self._logger.warning("No token available for request, auth header not set")
         return headers
     
     def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -104,7 +108,7 @@ class ApiClient:
             response = requests.post(
                 url,
                 json=data,
-                headers=self.get_auth_headers()
+                headers={**self.get_auth_headers(), "Content-Type": "application/json"}
             )
             response.raise_for_status()
             return response.json()
@@ -131,10 +135,12 @@ class ApiClient:
         try:
             self._logger.info(f"Making form POST request to {url}")
             # FastAPI's OAuth2PasswordRequestForm expects form data
+            # Para FastAPI, el Content-Type debe ser correcto para OAuth2 form
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
             response = requests.post(
                 url,
                 data=data,
-                # Let requests handle content-type automatically
+                headers=headers
             )
             response.raise_for_status()
             return response.json()

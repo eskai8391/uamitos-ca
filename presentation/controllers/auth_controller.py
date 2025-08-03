@@ -4,14 +4,17 @@ from typing import Optional, Callable, Dict, Any
 from application.use_cases.auth_use_cases import LoginResponse
 from domain.entities.user import UserRole
 from infrastructure.api_client.auth_client import AuthClient
+from infrastructure.api_client.api_client import ApiClient
 
 
 class AuthController:
     """Controller for authentication related operations"""
     
-    def __init__(self):
+    def __init__(self, api_client: Optional[ApiClient] = None):
         self._logger = logging.getLogger(__name__)
-        self._auth_client = AuthClient()
+        # Use shared ApiClient instance if provided
+        self._api_client = api_client
+        self._auth_client = AuthClient(api_client=self._api_client)
         self._current_user: Optional[LoginResponse] = None
     
     def login(self, email: str, password: str) -> Optional[LoginResponse]:
@@ -31,6 +34,12 @@ class AuthController:
             if response:
                 self._logger.info(f"Login successful for {email}")
                 self._current_user = response
+                
+                # Ensure token is set on the shared API client
+                if self._api_client:
+                    self._api_client.set_token(response.token)
+                    self._logger.info(f"Token set on shared API client: {id(self._api_client)}")
+                    
                 return response
             else:
                 self._logger.warning(f"Login failed for {email}")

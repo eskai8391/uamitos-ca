@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from domain.entities.user import User
-from domain.value_objects import Email
 from domain.repositories.base_entity_repository import BaseEntityRepository
 from domain.services.password_hasher import PasswordHasher
+from domain.entities.user import UserRole  # Agregar esta importación
 from infrastructure.security.jwt_manager import JWTManager
 
 
@@ -48,10 +47,10 @@ class AuthUseCases:
             # Verify password
             import logging
             logger = logging.getLogger(__name__)
-            
+
             # Debug log the verification attempt
             logger.debug(f"Verifying password for user: {user.email.value}")
-            logger.debug(f"Stored password hash: {user.password.value[:10]}...")
+            logger.debug(f"Stored password hash: {str(user.password)[:10]}...")
             
             verification_result = user.password.verify_password(request.password, self.__password_hasher)
             logger.debug(f"Password verification result: {verification_result}")
@@ -59,11 +58,14 @@ class AuthUseCases:
             if not verification_result:
                 return None
                 
-            # Generate token
+            # Generate token - Asegurar que role sea del tipo correcto
+            user_role = user.role if isinstance(user.role, UserRole) else UserRole(user.role)
+            logger.debug(f"User role type: {type(user_role)}, value: {user_role}")
+            
             token = JWTManager.create_user_token(
                 uuid=user.uuid,
                 email=user.email.value,
-                role=user.role
+                role=user_role
             )
             
             # Create response
@@ -71,8 +73,12 @@ class AuthUseCases:
                 token=token,
                 user_uuid=str(user.uuid),
                 email=user.email.value,
-                role=user.role.value,
-                full_name=user.full_name()
+                role=user.role.value if hasattr(user.role, 'value') else str(user.role),
+                full_name=f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else ""
             )
-        except Exception:
+
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Login error: {str(e)}", exc_info=True)
             return None

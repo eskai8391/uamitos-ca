@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Boolean, Enum, DateTime
+from sqlalchemy.orm import relationship
 from infrastructure.database.db import Base
 from domain.entities.user import UserRole
 
@@ -14,3 +15,6 @@ class UserModel(Base):
     role = Column(Enum(UserRole), nullable=False)
     is_active = Column(Boolean, default=True)
     last_login = Column(DateTime, nullable=False)
+    
+    # Relationships
+    organized_events = relationship("EventModel", back_populates="organizer")

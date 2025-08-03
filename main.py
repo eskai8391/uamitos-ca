@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from application.container import AppContainer
 from infrastructure.database import create_all
-from presentation.api.routes import student_routes, auth_routes
+from presentation.api.routes import student_routes, auth_routes, teacher_routes, event_routes
 
 
 # Configure logging
@@ -54,6 +54,8 @@ def create_api():
     # Include routers
     app.include_router(auth_routes.router, tags=["authentication"])
     app.include_router(student_routes.router, tags=["students"])
+    app.include_router(teacher_routes.router, tags=["teachers"])
+    app.include_router(event_routes.router, tags=["events"])
     
     return app
 
