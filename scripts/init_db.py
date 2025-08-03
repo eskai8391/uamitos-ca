@@ -7,7 +7,6 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from infrastructure.database import db, create_all, drop_all
-from infrastructure.repositories.user_repository import UserRepository
 from infrastructure.repositories.admin_repository import AdminRepository
 from infrastructure.repositories.teacher_repository import TeacherRepository
 from infrastructure.repositories.student_repository import StudentRepository

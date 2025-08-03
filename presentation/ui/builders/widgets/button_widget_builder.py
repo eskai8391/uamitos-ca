@@ -14,4 +14,5 @@ class ButtonWidgetBuilder(BaseWidgetBuilder):
 
     def set_default(self, default:bool) -> Self:
         self._widget.setAutoDefault(default)
+        self._widget.setDefault(default)
         return self

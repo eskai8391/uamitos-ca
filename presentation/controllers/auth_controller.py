@@ -1,11 +1,9 @@
 import logging
 from typing import Optional, Callable, Dict, Any
 
-from application.use_cases.auth_use_cases import AuthUseCases, LoginRequest, LoginResponse
+from application.use_cases.auth_use_cases import LoginResponse
 from domain.entities.user import UserRole
-from infrastructure.database import SessionLocal
-from infrastructure.repositories.user_repository import UserRepository
-from infrastructure.security.bcrypt_hasher import BcryptHasher
+from infrastructure.api_client.auth_client import AuthClient
 
 
 class AuthController:
@@ -13,15 +11,12 @@ class AuthController:
     
     def __init__(self):
         self._logger = logging.getLogger(__name__)
-        self._session = SessionLocal()
-        self._user_repository = UserRepository(self._session)
-        self._password_hasher = BcryptHasher()
-        self._auth_use_cases = AuthUseCases(self._user_repository, self._password_hasher)
+        self._auth_client = AuthClient()
         self._current_user: Optional[LoginResponse] = None
     
     def login(self, email: str, password: str) -> Optional[LoginResponse]:
         """
-        Attempt to log in a user with the given credentials
+        Attempt to log in a user with the given credentials via API
         
         :param email: User email
         :param password: User password
@@ -30,11 +25,8 @@ class AuthController:
         try:
             self._logger.info(f"Login attempt for {email}")
             
-            # Create login request
-            request = LoginRequest(email=email, password=password)
-            
-            # Process login with use case
-            response = self._auth_use_cases.login(request)
+            # Process login via API client
+            response = self._auth_client.login(email, password)
             
             if response:
                 self._logger.info(f"Login successful for {email}")
@@ -46,6 +38,9 @@ class AuthController:
                 
         except Exception as e:
             self._logger.error(f"Error during login: {e}", exc_info=True)
+            # If the error is related to API connection, propagate it to the view model
+            if "API server not available" in str(e) or "Connection refused" in str(e):
+                raise
             return None
     
     def get_current_user(self) -> Optional[LoginResponse]:
@@ -108,5 +103,5 @@ class AuthController:
         """
         Close the controller and its resources
         """
-        if self._session:
-            self._session.close()
+        if self._auth_client:
+            self._auth_client.close()

@@ -81,9 +81,12 @@ class JWTManager:
         :param role: User role
         :return: JWT token string
         """
+        
         data = {
             "uuid": str(uuid),
             "email": email,
             "role": role.value
         }
-        return JWTManager.create_access_token(data)
+        token = JWTManager.create_access_token(data)
+        return token
+        

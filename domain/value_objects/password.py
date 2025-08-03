@@ -31,7 +31,10 @@ class Password:
         return cls(hashed_value)
 
     def verify_password(self, plain_value: str, hasher_service: "PasswordHasher") -> bool:
-        return hasher_service.verify_password(plain_value, self.value)
+        try:
+            return hasher_service.verify_password(plain_value, self.value)
+        except Exception:
+            return False
 
     def __str__(self) -> str:
         return self.value

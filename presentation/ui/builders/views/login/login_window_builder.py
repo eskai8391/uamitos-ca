@@ -2,9 +2,9 @@ import copy
 import os
 from typing import Callable, Self, Optional
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, Slot
 from PySide6.QtWidgets import (
-    QWidget, QLineEdit, QMessageBox, QLabel, QPushButton
+    QWidget, QLineEdit, QMessageBox, QLabel, QPushButton, QLayout
 )
 
 from presentation.ui.builders.builder_interface import Builder
@@ -40,20 +40,21 @@ class LoginWindowBuilder(Builder):
         self._wf = wf
         self._lf = lf
         self._on_login_success = on_login_success or (lambda u, r, n: None)
+
+        # Create container widget that will hold everything
+        self._container = QWidget()
+        self._container.setObjectName("login-container")
         
         # Create view model
-        self._view_model = LoginViewModel()
-        
-        # Get style sheet path
+        self._view_model = LoginViewModel(self._container)
+
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self._style_path = os.path.join(current_dir, "login_styles.qss")
-        
-        # Create components
+
         self._create_layouts()
         self._create_form_components()
         self._assemble_components()
-        
-        # Connect signals after everything is created
+
         self._connect_signals()
     
     def _create_layouts(self) -> None:
@@ -65,14 +66,9 @@ class LoginWindowBuilder(Builder):
             .set_alignment(Qt.AlignmentFlag.AlignCenter)
             .set_class("container")
         )
-        
-        # Welcome section layout
+
         self._welcome_layout = self._lf.get("vbox")
-        
-        # Form layout for inputs
         self._form_layout = self._lf.get("form")
-        
-        # Error message layout
         self._error_layout = self._lf.get("vbox")
     
     def _create_form_components(self) -> None:
@@ -102,10 +98,13 @@ class LoginWindowBuilder(Builder):
         )
         
         # Create login button directly without using director
-        self._form_button = QPushButton("Iniciar sesión")
-        self._form_button.setObjectName("action_button")
-        self._form_button.setAutoDefault(True)
-        self._form_button.setDefault(True)
+        self._form_button = (
+            self._wf.get("button")
+            .set_text("Iniciar sesión")
+            .set_object_name("action_button")
+            .set_default(True)
+            .build()
+        )
         
         # Error message label (hidden by default)
         self._error_label = (
@@ -156,9 +155,11 @@ class LoginWindowBuilder(Builder):
         
         # Debug message for connection verification
         print("Login form connections established")
-    
+
+    @Slot(str)
     def _update_email(self, text: str) -> None:
         """Update the email in the view model"""
+        print(f"Email changed to: {text}")
         self._view_model.email = text
         
     def _update_password(self, text: str) -> None:
@@ -212,7 +213,24 @@ class LoginWindowBuilder(Builder):
         
         :return: The built login widget
         """
-        return self._main_layout.build()
+        # Get the layout from the layout builder
+        main_layout = self._main_layout.build()
+        
+        # Check if we got a QLayout (normal case) or a QWidget (container case)
+        if isinstance(main_layout, QLayout):
+            # Apply the layout to the container widget
+            self._container.setLayout(main_layout)
+        else:
+            # We got a container widget with layout already applied
+            # Copy its layout to our container
+            if main_layout.layout():
+                self._container.setLayout(main_layout.layout())
+            
+            # Apply any styling from the layout builder container
+            if main_layout.styleSheet():
+                self._container.setStyleSheet(main_layout.styleSheet())
+        
+        return self._container
     
     def set_on_login_success(self, callback: Callable[[str, str, str], None]) -> Self:
         """

@@ -21,12 +21,13 @@ class AppContainer(containers.DeclarativeContainer):
     # Coordinator (created after main window is built)
     coordinator = providers.Singleton(AppCoordinator)
     
-    # Login page builder with auth controller
-    login_builder = providers.Factory(
+    # Login page builder with auth controller - instantiated as a singleton
+    login_builder = providers.Singleton(
         LoginWindowBuilder,
         wf=widget_factory,
         lf=layout_factory,
-        on_login_success=lambda uuid, role, name: coordinator().handle_login_success(uuid, role, name)
+        # Use wired_coordinator to avoid circular reference
+        on_login_success=lambda uuid, role, name: None
     )
     
     # Main window builder

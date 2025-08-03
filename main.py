@@ -11,12 +11,23 @@ from presentation.api.routes import student_routes, auth_routes
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Set to DEBUG for development
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler()
+        logging.StreamHandler(),
+        logging.FileHandler("app.log", mode="a")  # Add file handler to keep logs
     ]
 )
+
+# Set specific logging levels for modules
+logging.getLogger("infrastructure.security").setLevel(logging.DEBUG)
+logging.getLogger("application.use_cases").setLevel(logging.DEBUG)
+logging.getLogger("presentation.api").setLevel(logging.DEBUG)
+logging.getLogger("infrastructure.repositories").setLevel(logging.INFO)
+logging.getLogger("uvicorn").setLevel(logging.INFO)
+logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
+
+# Root logger
 logger = logging.getLogger(__name__)
 
 
@@ -59,6 +70,9 @@ def main():
         # Create dependency container
         container = AppContainer()
         
+        # Force initialization of login_builder singleton
+        login_builder = container.login_builder()
+        
         # Build main window
         window = container.main_window_builder().build()
         
@@ -73,6 +87,9 @@ def main():
             main_window=window,
             stacked_widget=stacked_widget
         )
+        
+        # Now update the login success callback with the correct coordinator reference
+        login_builder.set_on_login_success(lambda uuid, role, name: coordinator.handle_login_success(uuid, role, name))
         
         # Register pages
         coordinator.register_page("login", 0)

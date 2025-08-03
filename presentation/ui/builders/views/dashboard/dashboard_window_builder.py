@@ -2,7 +2,7 @@ import os
 from typing import Callable, Self, Dict, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QLabel, QPushButton
+from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QLayout
 
 from presentation.ui.builders.builder_interface import Builder
 from presentation.ui.factories import WidgetFactory, LayoutFactory
@@ -39,9 +39,24 @@ class DashboardWindowBuilder(Builder):
         self._on_logout = on_logout or (lambda: None)
         self._on_navigation = on_navigation or {}
         
+        # Create container widget that will hold everything
+        self._container = QWidget()
+        self._container.setObjectName("dashboard-container")
+        
         # Get style sheet path
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self._style_path = os.path.join(current_dir, "dashboard_styles.qss")
+        print(f"Dashboard style path: {self._style_path}")
+        
+        # Verify if file exists
+        if not os.path.exists(self._style_path):
+            print(f"WARNING: Dashboard style file not found at {self._style_path}")
+            # Look for the file in parent directories
+            parent_dir = os.path.dirname(current_dir)
+            alt_path = os.path.join(parent_dir, "dashboard_styles.qss")
+            if os.path.exists(alt_path):
+                print(f"Found style file at alternative location: {alt_path}")
+                self._style_path = alt_path
         
         # Create components
         self._create_layouts()
@@ -158,8 +173,8 @@ class DashboardWindowBuilder(Builder):
     def _assemble_components(self) -> None:
         """Assemble all components into their layouts"""
         # Assemble header
-        self._header_layout.add_widget(self._app_title, 2)
-        self._header_layout.add_widget(self._user_info, 1)
+        self._header_layout.add_widget(self._app_title, stretch=2)
+        self._header_layout.add_widget(self._user_info, stretch=1)
         self._header_layout.add_widget(self._logout_button)
         
         # Assemble sidebar
@@ -170,12 +185,12 @@ class DashboardWindowBuilder(Builder):
         self._main_content_layout.add_widget(self._placeholder)
         
         # Assemble content layout
-        self._content_layout.add_layout(self._sidebar_layout.build(), 1)
-        self._content_layout.add_layout(self._main_content_layout.build(), 4)
+        self._content_layout.add_layout(self._sidebar_layout.build(), stretch=1)
+        self._content_layout.add_layout(self._main_content_layout.build(), stretch=4)
         
         # Assemble main layout
         self._main_layout.add_layout(self._header_layout.build())
-        self._main_layout.add_layout(self._content_layout.build(), 1)
+        self._main_layout.add_layout(self._content_layout.build(), stretch=1)
     
     def create(self) -> Self:
         """
@@ -207,7 +222,24 @@ class DashboardWindowBuilder(Builder):
         
         :return: The built dashboard widget
         """
-        return self._main_layout.build()
+        # Get the layout from the layout builder
+        main_layout = self._main_layout.build()
+        
+        # Check if we got a QLayout (normal case) or a QWidget (container case)
+        if isinstance(main_layout, QLayout):
+            # Apply the layout to the container widget
+            self._container.setLayout(main_layout)
+        else:
+            # We got a container widget with layout already applied
+            # Copy its layout to our container
+            if main_layout.layout():
+                self._container.setLayout(main_layout.layout())
+            
+            # Apply any styling from the layout builder container
+            if main_layout.styleSheet():
+                self._container.setStyleSheet(main_layout.styleSheet())
+        
+        return self._container
     
     def add_page(self, name: str, widget: QWidget) -> Self:
         """

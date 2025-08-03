@@ -46,7 +46,17 @@ class AuthUseCases:
                 return None
                 
             # Verify password
-            if not user.password.verify_password(request.password, self.__password_hasher):
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            # Debug log the verification attempt
+            logger.debug(f"Verifying password for user: {user.email.value}")
+            logger.debug(f"Stored password hash: {user.password.value[:10]}...")
+            
+            verification_result = user.password.verify_password(request.password, self.__password_hasher)
+            logger.debug(f"Password verification result: {verification_result}")
+            
+            if not verification_result:
                 return None
                 
             # Generate token
