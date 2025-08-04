@@ -3,8 +3,9 @@ import os
 from typing import Callable, Self, Optional
 
 from PySide6.QtCore import Qt, QSize, Slot
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
-    QWidget, QLineEdit, QMessageBox, QLabel, QPushButton, QLayout
+    QWidget, QLineEdit, QMessageBox, QLabel, QPushButton, QLayout, QHBoxLayout, QVBoxLayout
 )
 
 from presentation.ui.builders.builder_interface import Builder
@@ -13,6 +14,7 @@ from presentation.ui.builders.directors.layout_director import LayoutDirector
 from presentation.ui.builders.utils.validation import validate_not_none, validate_type
 from presentation.ui.factories import WidgetFactory, LayoutFactory
 from presentation.ui.viewmodels.login_viewmodel import LoginViewModel
+from presentation.ui.widgets import CircularImageWidget
 
 
 class LoginWindowBuilder(Builder):
@@ -80,6 +82,14 @@ class LoginWindowBuilder(Builder):
             "header"
         )
         
+        # Create user icon using UAMITOS logo
+        self._user_icon = QLabel()
+        self._user_icon.setObjectName("user-icon")
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))), "assets", "window", "logoUamitos.png")
+        self._user_icon.setPixmap(QPixmap(icon_path))
+        self._user_icon.setScaledContents(True)
+        self._user_icon.setFixedSize(150, 150)
+        
         # Email input
         self._form_input_email = (
             self._wf.get("lineedit")
@@ -118,7 +128,15 @@ class LoginWindowBuilder(Builder):
     
     def _assemble_components(self) -> None:
         """Assemble all components into their layouts"""
-        # Add welcome label to welcome layout
+        # Create a container for user icon
+        icon_container = QWidget()
+        icon_layout = QHBoxLayout(icon_container)
+        icon_layout.addStretch(1)
+        icon_layout.addWidget(self._user_icon)
+        icon_layout.addStretch(1)
+        
+        # Add user icon and welcome label to welcome layout
+        self._welcome_layout.add_widget(icon_container)
         self._welcome_layout.add_widget(self._welcome_label)
         
         # Add error message to error layout

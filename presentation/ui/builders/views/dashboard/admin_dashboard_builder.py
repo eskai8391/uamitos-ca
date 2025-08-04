@@ -2,10 +2,12 @@ import logging
 import os
 from typing import Callable, Dict, Optional, List, Tuple, Any
 from PySide6.QtCore import Qt, QSize, Signal, QTimer
+from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout, QFrame,
                                QLineEdit, QTableWidget, QTableWidgetItem, QHeaderView,
                                QHBoxLayout, QVBoxLayout, QScrollArea, QStackedWidget,
-                               QComboBox, QDialog, QFormLayout, QDialogButtonBox)
+                               QComboBox, QDialog, QFormLayout, QDialogButtonBox,
+                               QMainWindow, QToolBar, QMessageBox)
 
 from presentation.ui.viewmodels import UserViewModel, ReportViewModel
 from presentation.ui.builders.builder_interface import Builder
@@ -74,13 +76,23 @@ class AdminDashboardBuilder(Builder):
             # Trigger initial data load
             QTimer.singleShot(200, self._report_viewmodel.load_reports)
 
-        # Create container widget
-        self._container = QWidget()
+        # Create container widget as a MainWindow to support toolbar
+        self._container = QMainWindow()
         self._container.setObjectName("admin-dashboard-container")
-
-        # Main layout
+        
+        # Create central widget for the main content
+        self._central_widget = QWidget()
+        self._central_widget.setObjectName("admin-central-widget")
+        
+        # Main layout for central widget
         self._main_layout = QGridLayout()
-        self._container.setLayout(self._main_layout)
+        self._central_widget.setLayout(self._main_layout)
+        
+        # Set central widget
+        self._container.setCentralWidget(self._central_widget)
+        
+        # Create toolbar
+        self._create_toolbar()
 
         # Create components
         self._create_left_navigation()
@@ -110,7 +122,7 @@ class AdminDashboardBuilder(Builder):
         self._logo.setObjectName("app-logo")
         nav_layout.addWidget(self._logo)
 
-        # Navigation items
+        # Navigation items - adding back reportes and asignaciones tabs
         nav_items = [
             ("Inicio", "inicio"),
             ("Usuarios", "usuarios"),
@@ -129,7 +141,7 @@ class AdminDashboardBuilder(Builder):
                 btn.setChecked(True)
                 
             # Ensure button text is visible and consistent with other dashboards
-            btn.setStyleSheet("color: white; font-weight: bold; font-size: 15px;")
+            btn.setStyleSheet("color: white; font-weight: 500;")
 
             # Connect navigation button to handler
             btn.clicked.connect(lambda checked, section=item_id: self._handle_navigation(section))
@@ -153,9 +165,9 @@ class AdminDashboardBuilder(Builder):
         
         welcome_message = QLabel(f"¡Bienvenido, {self._admin_name}!")
         welcome_message.setObjectName("welcome-message")
-        welcome_message.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        welcome_message.setStyleSheet("color: #000000; font-size: 28px; font-weight: bold;")
         
-        welcome_description = QLabel("Administra usuarios, genera reportes y gestiona asignaciones de materias y profesores")
+        welcome_description = QLabel("Administra usuarios del sistema")
         welcome_description.setObjectName("welcome-description")
         welcome_description.setStyleSheet("color: rgba(255, 255, 255, 0.9); font-size: 16px;")
         
@@ -237,7 +249,7 @@ class AdminDashboardBuilder(Builder):
 
         # Configure table appearance
         self._users_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self._users_table.horizontalHeader().setStyleSheet("background-color: #3a7bd5; color: white; font-weight: bold;")
+        self._users_table.horizontalHeader().setStyleSheet("background-color: #3a7bd5; color: black; font-weight: bold;")
         self._users_table.setAlternatingRowColors(True)
         self._users_table.setShowGrid(True)
         self._users_table.setGridStyle(Qt.PenStyle.SolidLine)
@@ -574,9 +586,46 @@ class AdminDashboardBuilder(Builder):
         # Create page for "inicio" tab (welcome/home)
         home_page = QWidget()
         home_layout = QVBoxLayout(home_page)
-        home_layout.addWidget(self._welcome_banner)
         
-        # Create welcome info for home page similar to student dashboard
+        # Create welcome banner for home page - exactly like teacher dashboard
+        welcome_frame = QFrame()
+        welcome_frame.setObjectName("welcome-container")
+        welcome_layout = QHBoxLayout(welcome_frame)
+        
+        # Welcome message in a vertical layout
+        welcome_text_container = QVBoxLayout()
+        
+        welcome_message = QLabel(f"¡Bienvenido, {self._admin_name}!")
+        welcome_message.setObjectName("welcome-message")
+        welcome_message.setStyleSheet("color: black; font-size: 28px; font-weight: bold;")
+        
+        welcome_description = QLabel("Administra usuarios del sistema")
+        welcome_description.setObjectName("welcome-description")
+        welcome_description.setStyleSheet("color: rgba(255, 255, 255, 0.9); font-size: 16px;")
+        
+        # Action button
+        action_button = QPushButton("Gestionar Usuarios")
+        action_button.setObjectName("action-button")
+        action_button.clicked.connect(lambda: self._handle_navigation("usuarios"))
+        action_button.setStyleSheet("background-color: white; color: #3a7bd5; border: none; border-radius: 6px; padding: 10px 18px; font-weight: bold; font-size: 15px;")
+        
+        welcome_text_container.addWidget(welcome_message)
+        welcome_text_container.addWidget(welcome_description)
+        welcome_text_container.addStretch(1)
+        welcome_text_container.addWidget(action_button)
+        
+        # Admin image
+        admin_image = QLabel("👨‍💼")
+        admin_image.setObjectName("admin-image")
+        admin_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        admin_image.setStyleSheet("font-size: 70px; color: white; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);")
+        
+        welcome_layout.addLayout(welcome_text_container, 2)
+        welcome_layout.addWidget(admin_image, 1)
+        
+        home_layout.addWidget(welcome_frame)
+        
+        # Create welcome info for home page
         info_frame = QFrame()
         info_frame.setObjectName("welcome-info-frame")
         info_layout = QVBoxLayout(info_frame)
@@ -590,8 +639,9 @@ class AdminDashboardBuilder(Builder):
             "<p>Este es tu panel de control como administrador. Aquí podrás:</p>"
             "<ul>"
             "<li>Gestionar <b>usuarios</b> del sistema (profesores y estudiantes)</li>"
-            "<li>Generar <b>reportes</b> de asistencia, calificaciones y rendimiento</li>"
-            "<li>Administrar las <b>asignaciones</b> de profesores y materias</li>"
+            "<li>Generar <b>reportes</b> de asistencia y calificaciones</li>"
+            "<li>Administrar <b>asignaciones</b> de materias y profesores</li>"
+            "<li>Administrar <b>permisos</b> y acceso al sistema</li>"
             "</ul>"
             "<p>Utiliza la navegación de la izquierda para acceder a las diferentes secciones.</p>"
         )
@@ -607,7 +657,7 @@ class AdminDashboardBuilder(Builder):
         users_button.clicked.connect(lambda: self._handle_navigation("usuarios"))
         users_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
         
-        reports_button = QPushButton("Generar Reportes")
+        reports_button = QPushButton("Ver Reportes")
         reports_button.setObjectName("quick-access-button")
         reports_button.clicked.connect(lambda: self._handle_navigation("reportes"))
         reports_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
@@ -620,6 +670,7 @@ class AdminDashboardBuilder(Builder):
         buttons_layout.addWidget(users_button)
         buttons_layout.addWidget(reports_button)
         buttons_layout.addWidget(assignments_button)
+        buttons_layout.addStretch(1)
         
         info_layout.addLayout(buttons_layout)
         home_layout.addWidget(info_frame)
@@ -646,9 +697,9 @@ class AdminDashboardBuilder(Builder):
         # No configuration page anymore
         
         # Add all pages to the stack
-        self._content_stack.addWidget(home_page)      # Index 0: inicio
-        self._content_stack.addWidget(users_page)     # Index 1: usuarios
-        self._content_stack.addWidget(reports_page)   # Index 2: reportes
+        self._content_stack.addWidget(home_page)         # Index 0: inicio
+        self._content_stack.addWidget(users_page)        # Index 1: usuarios
+        self._content_stack.addWidget(reports_page)      # Index 2: reportes
         self._content_stack.addWidget(assignments_page)  # Index 3: asignaciones
         
         # Set initial page
@@ -667,7 +718,7 @@ class AdminDashboardBuilder(Builder):
         self._main_layout.setRowStretch(0, 0)  # Header row doesn't stretch
         self._main_layout.setRowStretch(1, 1)  # Content area stretches
         
-        # Store the page indices for navigation
+        # Store the page indices for navigation with reportes and asignaciones included
         self._page_indices = {
             "inicio": 0,
             "usuarios": 1,
@@ -684,17 +735,19 @@ class AdminDashboardBuilder(Builder):
         # Apply stylesheet if it exists
         if os.path.exists(style_path):
             with open(style_path, "r") as f:
-                self._container.setStyleSheet(f.read())
+                style_content = f.read()
+                self._container.setStyleSheet(style_content)
+                self._central_widget.setStyleSheet(style_content)
                 self._logger.info(f"Applied admin dashboard styles from {style_path}")
         else:
             self._logger.warning(f"Admin dashboard style file not found at {style_path}")
             # Fallback styles if external file is not found
-            self._container.setStyleSheet("""
+            style_content = """
                 #admin-dashboard-container {
                     background-color: #f8f9fa;
                 }
 
-                /* Navigation panel */
+                /* Navigation panel - exactly matching teacher dashboard */
                 #nav-panel {
                     background-color: #3a7bd5;
                     color: white;
@@ -799,25 +852,64 @@ class AdminDashboardBuilder(Builder):
                     font-family: "Segoe UI", Arial, sans-serif;
                 }
 
-                /* Tables */
+                /* Tables - updated to match other dashboards */
+                QTableWidget {
+                    border: none;
+                    background-color: white;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                }
+                
+                QTableWidget::item {
+                    padding: 8px;
+                    font-size: 14px;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    color: #000000;
+                }
+                
+                QTableWidget::item:selected {
+                    background-color: #4facfe;
+                    color: white;
+                }
+                
+                QHeaderView::section {
+                    background-color: #3a7bd5;
+                    color: white;
+                    padding: 8px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    border: none;
+                }
+                
+                /* Specific table styling */
                 #users-table, #assignments-table, #recent-reports-table {
                     border: none;
                     background-color: white;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-                    color: #000000;
                 }
-
+                
                 #users-table::item, #assignments-table::item, #recent-reports-table::item {
                     padding: 8px;
                     font-size: 14px;
                     font-family: "Segoe UI", Arial, sans-serif;
                     color: #000000;
                 }
-
+                
                 #users-table::item:selected, #assignments-table::item:selected, #recent-reports-table::item:selected {
                     background-color: #4facfe;
                     color: white;
+                }
+                
+                #users-table QHeaderView::section, #assignments-table QHeaderView::section, #recent-reports-table QHeaderView::section {
+                    background-color: #3a7bd5;
+                    color: white;
+                    padding: 8px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    border: none;
                 }
                 
                 /* Buttons */
@@ -866,7 +958,29 @@ class AdminDashboardBuilder(Builder):
                     transform: translateY(-2px);
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
                 }
-            """)
+                
+                /* Toolbar styles */
+                QToolBar {
+                    background-color: #3a7bd5;
+                    border: none;
+                    spacing: 10px;
+                }
+                
+                QToolBar QToolButton {
+                    background-color: transparent;
+                    color: white;
+                    border: none;
+                    font-weight: bold;
+                    padding: 5px 10px;
+                }
+                
+                QToolBar QToolButton:hover {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    border-radius: 4px;
+                }
+            """
+            self._container.setStyleSheet(style_content)
+            self._central_widget.setStyleSheet(style_content)
 
     def _get_users_data(self) -> List[Dict[str, Any]]:
         """Get users data for displaying in the table
@@ -1118,34 +1232,14 @@ class AdminDashboardBuilder(Builder):
         for btn_id, btn in self._nav_buttons.items():
             btn.setChecked(btn_id == section)
             
-        # Update content visibility based on selected section
-        if section == "usuarios":
-            if hasattr(self, '_users_section'):
-                self._users_section.setVisible(True)
-            if hasattr(self, '_reports_section'):
-                self._reports_section.setVisible(False)
-            if hasattr(self, '_assignments_section'):
-                self._assignments_section.setVisible(False)
-        elif section == "reportes":
-            if hasattr(self, '_users_section'):
-                self._users_section.setVisible(False)
-            if hasattr(self, '_reports_section'):
-                self._reports_section.setVisible(True)
-            if hasattr(self, '_assignments_section'):
-                self._assignments_section.setVisible(False)
-        elif section == "asignaciones":
-            if hasattr(self, '_users_section'):
-                self._users_section.setVisible(False)
-            if hasattr(self, '_reports_section'):
-                self._reports_section.setVisible(False)
-            if hasattr(self, '_assignments_section'):
-                self._assignments_section.setVisible(True)
+        # Use the stacked widget to handle section visibility
+        if section in self._page_indices:
+            self._content_stack.setCurrentIndex(self._page_indices[section])
                 
         # Trigger data loading based on the selected section
         if section == "usuarios" and self._user_viewmodel:
             self._user_viewmodel.load_users()
         elif section == "reportes" and self._report_viewmodel:
-            # Just load reports, don't try to connect to a handler that doesn't exist
             self._report_viewmodel.load_reports()
             
         # Call external navigation handler if provided
@@ -1154,7 +1248,55 @@ class AdminDashboardBuilder(Builder):
         # Log navigation
         self._logger.info(f"Navigated to section: {section}")
         
-    def build(self) -> QWidget:
+    def _create_toolbar(self) -> None:
+        """Create toolbar with about option"""
+        toolbar = QToolBar("Main Toolbar")
+        toolbar.setMovable(False)
+        toolbar.setFloatable(False)
+        toolbar.setIconSize(QSize(20, 20))
+        
+        # Create about action
+        about_action = QAction("Acerca De", self._container)
+        about_action.setStatusTip("Muestra información de la empresa")
+        about_action.triggered.connect(self._show_about_dialog)
+        
+        # Add actions to toolbar
+        toolbar.addAction(about_action)
+        
+        # Add toolbar to window
+        self._container.addToolBar(toolbar)
+        
+    def _show_about_dialog(self) -> None:
+        """Show about dialog with company information"""
+        about_box = QMessageBox(self._container)
+        about_box.setWindowTitle("Acerca De UAMITOS")
+        
+        # Create rich text with company information
+        about_text = """
+        <h2 style="color: #3a7bd5;">UAMITOS High School</h2>
+        <p><b>Sistema de Administración Escolar</b></p>
+        <hr>
+        <p>UAMITOS es una institución educativa comprometida con la excelencia académica 
+        y el desarrollo integral de sus estudiantes.</p>
+        <p><b>Misión:</b> Formar estudiantes con valores y habilidades para el éxito académico y personal.</p>
+        <p><b>Visión:</b> Ser líderes en innovación educativa y formación de calidad.</p>
+        <hr>
+        <p><b>Versión:</b> 1.0.0</p>
+        <p><b>Desarrollado por:</b> Equipo de FLOWBYTE</p>
+        <p style="color: #666; font-size: small;">© 2025 UAMITOS High School. Todos los derechos reservados.</p>
+        """
+        
+        # Set text and icon
+        about_box.setText(about_text)
+        about_box.setIconPixmap(QPixmap(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))), "assets", "window", "logoUamitos.png")).scaled(128, 128, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        
+        # Add OK button
+        about_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        
+        # Show dialog
+        about_box.exec()
+    
+    def build(self) -> QMainWindow:
         """
         Build and return the final dashboard widget
         

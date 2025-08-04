@@ -1,6 +1,8 @@
 import logging
+import os
 import sys
 from PySide6.QtWidgets import QApplication, QStackedWidget
+from PySide6.QtGui import QIcon
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -73,6 +75,13 @@ def main():
         # Initialize GUI
         qt_app = QApplication(sys.argv)
         
+        # Set application icon
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "window", "logoUamitos.png")
+        if os.path.exists(icon_path):
+            qt_app.setWindowIcon(QIcon(icon_path))
+        else:
+            logger.warning(f"Window icon not found at: {icon_path}")
+            
         # Create dependency container
         container = AppContainer()
         

@@ -1,4 +1,6 @@
+import os
 from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget
+from PySide6.QtGui import QIcon
 from typing import Dict, Callable, Any, Union
 
 from presentation.ui.factories import WidgetFactory, LayoutFactory
@@ -22,6 +24,11 @@ class MainWindowBuilder:
     def build(self) -> QMainWindow:
         self.__window.setWindowTitle("Uamitos-CA")
         self.__window.setFixedSize(500, 580)
+        
+        # Set window icon
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))), "assets", "window", "logoUamitos.png")
+        if os.path.exists(icon_path):
+            self.__window.setWindowIcon(QIcon(icon_path))
 
         for idx, (name, builder_or_factory) in enumerate(self.__page_builders.items()):
             self.__page_indexes[name] = idx

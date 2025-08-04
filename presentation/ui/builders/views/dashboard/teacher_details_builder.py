@@ -1,7 +1,7 @@
 from typing import Callable, Dict, Optional, List
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QFrame, QTableWidget, QTableWidgetItem
+from PySide6.QtWidgets import QWidget, QFrame, QTableWidget, QTableWidgetItem, QHeaderView
 
 from presentation.ui.builders.builder_interface import Builder
 from presentation.ui.factories import WidgetFactory, LayoutFactory
@@ -164,6 +164,14 @@ class TeacherDetailsBuilder(Builder):
         self._subjects_table.setColumnCount(4)
         self._subjects_table.setHorizontalHeaderLabels(["Materia", "Grupo", "Horario", "No. Estudiantes"])
         
+        # Configure table appearance to match teacher dashboard
+        self._subjects_table.horizontalHeader().setStyleSheet("background-color: #3a7bd5; color: white; font-weight: bold;")
+        self._subjects_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self._subjects_table.setAlternatingRowColors(True)
+        self._subjects_table.setShowGrid(True)
+        self._subjects_table.setGridStyle(Qt.PenStyle.SolidLine)
+        self._subjects_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        
         # Sample data - match teacher name to subjects
         if "Laura Gómez" == self._teacher_name:
             subjects = [
@@ -224,6 +232,14 @@ class TeacherDetailsBuilder(Builder):
         self._schedule_table.setObjectName("schedule-table")
         self._schedule_table.setColumnCount(6)
         self._schedule_table.setHorizontalHeaderLabels(["Hora", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes"])
+        
+        # Configure table appearance to match teacher dashboard
+        self._schedule_table.horizontalHeader().setStyleSheet("background-color: #3a7bd5; color: white; font-weight: bold;")
+        self._schedule_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self._schedule_table.setAlternatingRowColors(True)
+        self._schedule_table.setShowGrid(True)
+        self._schedule_table.setGridStyle(Qt.PenStyle.SolidLine)
+        self._schedule_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         
         # Sample schedule data
         time_slots = ["8:00-9:30", "9:30-11:00", "11:00-12:30", "12:30-14:00", "14:00-15:30"]
@@ -310,21 +326,90 @@ class TeacherDetailsBuilder(Builder):
             QTableWidget {
                 border: none;
                 background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             }
             
             QTableWidget::item {
-                padding: 5px;
+                padding: 8px;
+                font-size: 14px;
+                font-family: "Segoe UI", Arial, sans-serif;
+                color: #000000;
             }
             
             QTableWidget::item:selected {
-                background-color: #e1f0ff;
+                background-color: #4facfe;
+                color: white;
             }
             
             QHeaderView::section {
-                background-color: #d9d0c4;
-                padding: 5px;
-                border: none;
+                background-color: #3a7bd5;
+                color: white;
+                padding: 8px;
+                font-size: 14px;
                 font-weight: bold;
+                font-family: "Segoe UI", Arial, sans-serif;
+                border: none;
+            }
+            
+            /* Specific styling for subjects table */
+            #subjects-table {
+                border: none;
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+            
+            #subjects-table::item {
+                padding: 8px;
+                font-size: 14px;
+                font-family: "Segoe UI", Arial, sans-serif;
+                color: #000000;
+            }
+            
+            #subjects-table::item:selected {
+                background-color: #4facfe;
+                color: white;
+            }
+            
+            #subjects-table QHeaderView::section {
+                background-color: #3a7bd5;
+                color: white;
+                padding: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                font-family: "Segoe UI", Arial, sans-serif;
+                border: none;
+            }
+            
+            /* Specific styling for schedule table */
+            #schedule-table {
+                border: none;
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+            
+            #schedule-table::item {
+                padding: 8px;
+                font-size: 14px;
+                font-family: "Segoe UI", Arial, sans-serif;
+                color: #000000;
+            }
+            
+            #schedule-table::item:selected {
+                background-color: #4facfe;
+                color: white;
+            }
+            
+            #schedule-table QHeaderView::section {
+                background-color: #3a7bd5;
+                color: white;
+                padding: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                font-family: "Segoe UI", Arial, sans-serif;
+                border: none;
             }
         """)
     

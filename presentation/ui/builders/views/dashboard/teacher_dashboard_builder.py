@@ -143,11 +143,9 @@ class TeacherDashboardBuilder(Builder):
         nav_layout.addStretch(1)
 
     def _create_search_bar(self) -> None:
-        """Create search bar"""
-        self._search_bar = QLineEdit()
-        self._search_bar.setObjectName("search-bar")
-        self._search_bar.setPlaceholderText("Buscar estudiantes...")
-        self._search_bar.returnPressed.connect(self._handle_search)
+        """Create search bar - removed as requested"""
+        # Search bar has been removed
+        pass
 
     def _create_control_cards(self) -> None:
         """Create control cards section"""
@@ -674,8 +672,8 @@ class TeacherDashboardBuilder(Builder):
 
     def _assemble_layout(self) -> None:
         """Assemble all components into main layout"""
-        # First row: search bar and user info
-        self._main_layout.addWidget(self._search_bar, 0, 1, 1, 3)
+        # First row: user info only (search bar removed)
+        # self._main_layout.addWidget(self._search_bar, 0, 1, 1, 3) - removed
         self._main_layout.addWidget(self._user_info, 0, 4, 1, 1)
 
         # Left navigation panel (spans all rows)
@@ -698,7 +696,7 @@ class TeacherDashboardBuilder(Builder):
         
         welcome_message = QLabel(f"¡Bienvenido, {self._teacher_name}!")
         welcome_message.setObjectName("welcome-message")
-        welcome_message.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        welcome_message.setStyleSheet("color: black; font-size: 28px; font-weight: bold;")
         
         welcome_description = QLabel("Consulta el rendimiento y asistencia de tus estudiantes")
         welcome_description.setObjectName("welcome-description")
@@ -772,7 +770,6 @@ class TeacherDashboardBuilder(Builder):
         
         info_layout.addLayout(buttons_layout)
         home_layout.addWidget(info_frame)
-        home_layout.addWidget(self._control_cards_container)
         home_layout.addStretch(1)
         
         # Create page for "estudiantes" tab
@@ -1175,16 +1172,9 @@ class TeacherDashboardBuilder(Builder):
         self._logger.info(f"Navigated to section: {section}")
 
     def _handle_search(self) -> None:
-        """Handle search action"""
-        search_text = self._search_bar.text().strip()
-        if not search_text:
-            return
-
-        self._logger.info(f"Searching for: {search_text}")
-
-        # You would normally filter the students table or other content here
-        # For demonstration purposes, we're just printing the search term
-        self._search_bar.clear()
+        """Handle search action - removed as search bar was removed"""
+        # Search functionality has been removed
+        pass
 
     def _handle_view_all_students(self) -> None:
         """Handle view all students action"""
@@ -1243,11 +1233,24 @@ class TeacherDashboardBuilder(Builder):
                 # Add new rows for each student
                 self._students_table.setRowCount(len(students))
                 
+                import random
+                grade_options = [f"{g}° grado" for g in range(7, 12)]
+                
                 for row, student in enumerate(students):
                     # Extract name, grade and attendance
                     name = f"{student.get('first_name', '')} {student.get('last_name', '')}"
-                    grade = student.get('grade_level', 'N/A')
-                    attendance = f"{student.get('attendance_rate', 'N/A')}%"
+                    
+                    # Generate random grade if not available
+                    if not student.get('grade_level'):
+                        grade = random.choice(grade_options)
+                    else:
+                        grade = student.get('grade_level')
+                        
+                    # Generate random attendance if not available
+                    if not student.get('attendance_rate'):
+                        attendance = f"{random.randint(70, 99)}%"
+                    else:
+                        attendance = f"{student.get('attendance_rate')}%"
                     
                     name_item = QTableWidgetItem(name)
                     name_item.setData(Qt.UserRole, student.get('uuid', ''))
@@ -1454,11 +1457,18 @@ class TeacherDashboardBuilder(Builder):
                 self._logger.error(f"Error loading students from viewmodel: {e}")
                 
         # Fallback to dummy data if viewmodel is not available or failed
+        import random
+        
+        # Create random grades and attendance percentages
+        grades = [f"{g}° grado" for g in range(7, 12)] + ["N/A"]  # Include N/A as an option
+        
         return [
-            ("Alex Johnson", "10° grado", "95%"),
-            ("Maria Garcia", "11° grado", "89%"),
-            ("Carlos Rodriguez", "10° grado", "91%"),
-            ("Emma Wilson", "11° grado", "87%"),
+            ("Alex Johnson", random.choice(grades), f"{random.randint(70, 99)}%"),
+            ("Maria Garcia", random.choice(grades), f"{random.randint(70, 99)}%"),
+            ("Carlos Rodriguez", random.choice(grades), f"{random.randint(70, 99)}%"),
+            ("Emma Wilson", random.choice(grades), f"{random.randint(70, 99)}%"),
+            ("Luis Vega", random.choice(grades), f"{random.randint(70, 99)}%"),
+            ("Sofia Chen", random.choice(grades), f"{random.randint(70, 99)}%"),
         ]
         
     def _get_teacher_data(self) -> List[Tuple[str, str]]:
