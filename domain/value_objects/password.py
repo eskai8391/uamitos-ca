@@ -38,3 +38,7 @@ class Password:
 
     def __str__(self) -> str:
         return self.__value
+        
+    @property
+    def value(self) -> str:
+        return self.__value

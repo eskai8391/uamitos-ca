@@ -1,6 +1,6 @@
 import logging
 from typing import Callable, Dict, Optional, List, Tuple
-from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtCore import Qt, QSize, Signal, QTimer
 from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout, QFrame,
                                QLineEdit, QTableWidget, QTableWidgetItem, QHeaderView,
                                QHBoxLayout, QVBoxLayout, QScrollArea, QStackedWidget)
@@ -59,12 +59,20 @@ class TeacherDashboardBuilder(Builder):
         # Connect to viewmodel signals if available
         if self._student_viewmodel:
             self._student_viewmodel.studentsLoaded.connect(self._on_students_loaded)
+            # Trigger initial data load
+            QTimer.singleShot(100, self._student_viewmodel.load_students)
 
         if self._teacher_viewmodel:
             self._teacher_viewmodel.teachersLoaded.connect(self._on_teachers_loaded)
+            # Trigger initial data load
+            QTimer.singleShot(200, self._teacher_viewmodel.load_teachers)
 
         if self._event_viewmodel:
             self._event_viewmodel.upcomingEventsLoaded.connect(self._on_events_loaded)
+            self._event_viewmodel.monthlyAttendanceLoaded.connect(self._on_monthly_attendance_loaded)
+            # Trigger initial data loads
+            QTimer.singleShot(300, self._event_viewmodel.load_upcoming_events)
+            QTimer.singleShot(400, self._event_viewmodel.load_monthly_attendance)
 
         # Create container widget
         self._container = QWidget()
@@ -122,6 +130,9 @@ class TeacherDashboardBuilder(Builder):
             # Set estudiantes as active by default
             if item_id == "estudiantes":
                 btn.setChecked(True)
+                
+            # Ensure button text is visible
+            btn.setStyleSheet("color: white; font-weight: bold;")
 
             # Connect navigation button to handler
             btn.clicked.connect(lambda checked, section=item_id: self._handle_navigation(section))
@@ -231,12 +242,17 @@ class TeacherDashboardBuilder(Builder):
         self._students_table.setObjectName("students-table")
         self._students_table.setColumnCount(3)
         self._students_table.setHorizontalHeaderLabels(["Nombre", "Grado", "Asistencia"])
+        
+        # Set header text color directly
+        header_view = self._students_table.horizontalHeader()
+        header_view.setStyleSheet("QHeaderView::section { color: white; font-weight: bold; }")
 
         # Configure table appearance
         self._students_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self._students_table.horizontalHeader().setStyleSheet("background-color: #d9d0c4;")
+        self._students_table.horizontalHeader().setStyleSheet("background-color: #3a7bd5; color: white; font-weight: bold;")
         self._students_table.setAlternatingRowColors(True)
-        self._students_table.setShowGrid(False)
+        self._students_table.setShowGrid(True)
+        self._students_table.setGridStyle(Qt.PenStyle.SolidLine)
         self._students_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self._students_table.cellDoubleClicked.connect(self._handle_student_selected)
 
@@ -276,12 +292,16 @@ class TeacherDashboardBuilder(Builder):
 
         events_layout.addLayout(header_layout)
 
-        # Create event cards
-        self._create_event_card("Lunes", "28", "Clase especial de matemáticas", "09:00 AM - 10:00 AM", "En 1 días",
-                                events_layout)
-        self._create_event_card("Martes", "29", "Webinar de orientación", "01:00 PM - 02:30 PM", "En 2 días",
-                                events_layout)
-        self._create_event_card("Viernes", "1", "Excursión", "Todo el día", "En 5 días", events_layout)
+        # Load events from API via viewmodel
+        if self._event_viewmodel:
+            self._event_viewmodel.load_upcoming_events(7)  # Load events for the next 7 days
+        else:
+            # Fallback to dummy data if no viewmodel available
+            self._create_event_card("Lunes", "28", "Clase especial de matemáticas", "09:00 AM - 10:00 AM", "En 1 días",
+                                    events_layout)
+            self._create_event_card("Martes", "29", "Webinar de orientación", "01:00 PM - 02:30 PM", "En 2 días",
+                                    events_layout)
+            self._create_event_card("Viernes", "1", "Excursión", "Todo el día", "En 5 días", events_layout)
 
     def _create_event_card(self, day: str, date: str, title: str, time: str, days_left: str,
                            parent_layout: QVBoxLayout) -> None:
@@ -321,9 +341,11 @@ class TeacherDashboardBuilder(Builder):
 
         event_title = QLabel(title)
         event_title.setObjectName("event-title")
+        event_title.setStyleSheet("color: #000000; font-weight: bold; font-size: 14px;")
 
         event_time = QLabel(f"🕓 {time}")
         event_time.setObjectName("event-time")
+        event_time.setStyleSheet("color: #000000; font-weight: 500; font-size: 12px;")
 
         details_layout.addWidget(event_title)
         details_layout.addWidget(event_time)
@@ -331,6 +353,7 @@ class TeacherDashboardBuilder(Builder):
         # Days left label on the right
         days_left_label = QLabel(days_left)
         days_left_label.setObjectName("days-left")
+        days_left_label.setStyleSheet("color: #000000; font-weight: 500; font-size: 12px;")
 
         # Assemble card
         card_layout.addWidget(date_container)
@@ -379,31 +402,40 @@ class TeacherDashboardBuilder(Builder):
         chart_frame.setObjectName("chart-container")
         chart_layout = QHBoxLayout()
         chart_frame.setLayout(chart_layout)
+        
+        # Store the chart layout for later updates
+        self._chart_layout = chart_layout
 
-        # Create chart bars
-        months = ["Jan", "Feb", "Mar", "Apr", "May"]
-        values = [70, 80, 75, 85, 90]
+        # Load monthly attendance data from API via viewmodel
+        if self._event_viewmodel:
+            self._event_viewmodel.load_monthly_attendance(5)  # Load data for 5 months
+            # We'll update the chart when the data is loaded via the signal
+            # The bars will be created in the _on_monthly_attendance_loaded method
+        else:
+            # Fallback to dummy data if no viewmodel available
+            months = ["Ene", "Feb", "Mar", "Abr", "May"]
+            values = [70, 80, 75, 85, 90]
+            
+            for month, value in zip(months, values):
+                bar_container = QFrame()
+                bar_container.setFixedWidth(60)
+                bar_layout = QVBoxLayout()
+                bar_container.setLayout(bar_layout)
 
-        for month, value in zip(months, values):
-            bar_container = QFrame()
-            bar_container.setFixedWidth(60)
-            bar_layout = QVBoxLayout()
-            bar_container.setLayout(bar_layout)
+                # Bar
+                bar = QFrame()
+                bar.setObjectName("attendance-bar")
+                bar.setFixedHeight(int(value * 2))  # Scale value to height
 
-            # Bar
-            bar = QFrame()
-            bar.setObjectName("attendance-bar")
-            bar.setFixedHeight(int(value * 2))  # Scale value to height
+                # Month label
+                month_label = QLabel(month)
+                month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            # Month label
-            month_label = QLabel(month)
-            month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                bar_layout.addStretch(1)
+                bar_layout.addWidget(bar)
+                bar_layout.addWidget(month_label)
 
-            bar_layout.addStretch(1)
-            bar_layout.addWidget(bar)
-            bar_layout.addWidget(month_label)
-
-            chart_layout.addWidget(bar_container)
+                chart_layout.addWidget(bar_container)
 
         # Legend
         legend_layout = QHBoxLayout()
@@ -591,22 +623,25 @@ class TeacherDashboardBuilder(Builder):
         # Main styles
         self._container.setStyleSheet("""
                 #teacher-dashboard-container {
-                    background-color: #f5f7fd;
+                    background-color: #f8f9fa;
                 }
 
                 /* Navigation panel */
                 #nav-panel {
-                    background-color: #5a7a95;
+                    background-color: #3a7bd5;
                     color: white;
                     border: none;
                     padding: 10px;
+                    border-radius: 6px;
                 }
 
                 #app-logo {
-                    font-size: 16px;
+                    font-size: 18px;
                     font-weight: bold;
                     color: white;
                     padding: 10px 0;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    letter-spacing: 0.5px;
                 }
 
                 #nav-panel QPushButton {
@@ -615,11 +650,15 @@ class TeacherDashboardBuilder(Builder):
                     border: none;
                     padding: 10px;
                     text-align: left;
-                    font-size: 14px;
+                    font-size: 15px;
+                    font-weight: 500;
+                    font-family: "Segoe UI", Arial, sans-serif;
                 }
 
                 #nav-panel QPushButton:checked {
-                    background-color: #446884;
+                    background-color: rgba(255, 255, 255, 0.2);
+                    color: white;
+                    border-radius: 4px;
                 }
 
                 /* Search bar */
@@ -655,18 +694,23 @@ class TeacherDashboardBuilder(Builder):
                     border-radius: 10px;
                     padding: 15px;
                     color: #333;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    transition: transform 0.2s ease;
                 }
 
                 #students-card {
-                    background-color: #f0f0f5;
+                    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    color: white;
                 }
 
                 #admin-card {
-                    background-color: #f5e6fa;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
                 }
 
                 #schedule-card {
-                    background-color: #e6fae8;
+                    background: linear-gradient(135deg, #13547a 0%, #80d0c7 100%);
+                    color: white;
                 }
 
                 #students-card-arrow, #admin-card-arrow, #schedule-card-arrow {
@@ -691,14 +735,34 @@ class TeacherDashboardBuilder(Builder):
                 #students-table {
                     border: none;
                     background-color: white;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                 }
 
                 #students-table::item {
-                    padding: 5px;
+                    padding: 8px;
+                    font-size: 14px;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    color: #000000;
                 }
 
                 #students-table::item:selected {
-                    background-color: #e1f0ff;
+                    background-color: #4facfe;
+                    color: white;
+                }
+                
+                #students-table {
+                    color: #000000;
+                }
+
+                #students-table QHeaderView::section {
+                    background-color: #3a7bd5;
+                    color: white;
+                    padding: 8px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    border: none;
                 }
 
                 /* Events section */
@@ -706,11 +770,18 @@ class TeacherDashboardBuilder(Builder):
                     background-color: white;
                     border-radius: 5px;
                     padding: 10px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #events-title {
-                    font-size: 16px;
+                    font-size: 18px;
                     font-weight: bold;
+                    color: #000000;
+                }
+
+                #events-icon {
+                    font-size: 18px;
+                    color: #000000;
                 }
 
                 #event-card {
@@ -718,18 +789,26 @@ class TeacherDashboardBuilder(Builder):
                     border-radius: 5px;
                     padding: 10px;
                     margin-bottom: 10px;
+                    border: 1px solid #e0e0e0;
+                }
+                
+                #event-time {
+                    color: #000000;
+                    font-weight: 500;
+                    font-size: 13px;
                 }
 
                 #event-date {
-                    background-color: #8ecaef;
+                    background-color: #f0f0f0;
                     border-radius: 5px;
-                    color: white;
+                    color: #333333;
                     padding: 5px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #event-day, #event-date-number, #event-month {
                     font-weight: bold;
-                    color: white;
+                    color: #333333;
                 }
 
                 #event-date-number {
@@ -738,10 +817,13 @@ class TeacherDashboardBuilder(Builder):
 
                 #event-title {
                     font-weight: bold;
+                    color: #000000;
+                    font-size: 15px;
                 }
 
                 #days-left {
-                    color: #777;
+                    color: #333333;
+                    font-weight: 500;
                 }
 
                 /* Attendance chart */
@@ -749,22 +831,26 @@ class TeacherDashboardBuilder(Builder):
                     background-color: white;
                     border-radius: 5px;
                     padding: 10px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #attendance-bar {
-                    background-color: #8ecaef;
+                    background-color: #f0f0f0;
                     width: 30px;
                     border-radius: 3px 3px 0 0;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #attendance-color {
-                    background-color: #8ecaef;
+                    background-color: #f0f0f0;
                     border-radius: 3px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #absence-color {
-                    background-color: #ddd;
+                    background-color: #ffffff;
                     border-radius: 3px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 /* Teachers section */
@@ -772,27 +858,31 @@ class TeacherDashboardBuilder(Builder):
                     background-color: white;
                     border-radius: 5px;
                     padding: 10px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #teacher-card {
-                    background-color: #f9f9f9;
+                    background-color: white;
                     border-radius: 5px;
                     padding: 10px;
+                    border: 1px solid #e0e0e0;
                 }
 
                 #teacher-avatar {
                     font-size: 32px;
-                    color: #666;
+                    color: #333333;
                 }
 
                 #teacher-name {
                     font-weight: bold;
-                    font-size: 14px;
+                    font-size: 15px;
+                    color: #000000;
                 }
 
                 #teacher-subject {
-                    color: #777;
-                    font-size: 12px;
+                    color: #333333;
+                    font-size: 13px;
+                    font-weight: 500;
                 }
             """)
 
@@ -847,6 +937,44 @@ class TeacherDashboardBuilder(Builder):
         # Update UI to reflect the new section
         for btn_id, btn in self._nav_buttons.items():
             btn.setChecked(btn_id == section)
+            
+        # Update content visibility based on selected section
+        if section == "estudiantes":
+            if hasattr(self, '_students_section'):
+                self._students_section.setVisible(True)
+            if hasattr(self, '_events_section'):
+                self._events_section.setVisible(False)
+            if hasattr(self, '_teachers_section'):
+                self._teachers_section.setVisible(False)
+            if hasattr(self, '_attendance_section'):
+                self._attendance_section.setVisible(False)
+        elif section == "profesores":
+            if hasattr(self, '_students_section'):
+                self._students_section.setVisible(False)
+            if hasattr(self, '_events_section'):
+                self._events_section.setVisible(False)
+            if hasattr(self, '_teachers_section'):
+                self._teachers_section.setVisible(True)
+            if hasattr(self, '_attendance_section'):
+                self._attendance_section.setVisible(False)
+        elif section == "eventos":
+            if hasattr(self, '_students_section'):
+                self._students_section.setVisible(False)
+            if hasattr(self, '_events_section'):
+                self._events_section.setVisible(True)
+            if hasattr(self, '_teachers_section'):
+                self._teachers_section.setVisible(False)
+            if hasattr(self, '_attendance_section'):
+                self._attendance_section.setVisible(True)
+        
+        # Trigger data loading based on the selected section
+        if section == "estudiantes" and self._student_viewmodel:
+            self._student_viewmodel.load_students()
+        elif section == "profesores" and self._teacher_viewmodel:
+            self._teacher_viewmodel.load_teachers()
+        elif section == "eventos" and self._event_viewmodel:
+            self._event_viewmodel.load_upcoming_events()
+            self._event_viewmodel.load_monthly_attendance()
 
         # Call external navigation handler if provided
         self._on_navigate(section)
@@ -914,8 +1042,7 @@ class TeacherDashboardBuilder(Builder):
         """
         self._logger.info(f"Students loaded: {len(students) if students else 0}")
         
-        # Here you would update the UI with the loaded students
-        # For now, we'll just log it
+        # Update the UI with the loaded students
         if hasattr(self, '_students_table') and self._students_table:
             # Clear existing rows
             self._students_table.setRowCount(0)
@@ -927,13 +1054,70 @@ class TeacherDashboardBuilder(Builder):
                 for row, student in enumerate(students):
                     # Extract name, grade and attendance
                     name = f"{student.get('first_name', '')} {student.get('last_name', '')}"
-                    grade = student.get('grade', 'N/A')
-                    attendance = student.get('attendance', 'N/A')
+                    grade = student.get('grade_level', 'N/A')
+                    attendance = f"{student.get('attendance_rate', 'N/A')}%"
                     
-                    self._students_table.setItem(row, 0, QTableWidgetItem(name))
+                    name_item = QTableWidgetItem(name)
+                    name_item.setData(Qt.UserRole, student.get('uuid', ''))
+                    
+                    self._students_table.setItem(row, 0, name_item)
                     self._students_table.setItem(row, 1, QTableWidgetItem(str(grade)))
                     self._students_table.setItem(row, 2, QTableWidgetItem(str(attendance)))
                     
+    def _on_monthly_attendance_loaded(self, attendance_data: dict) -> None:
+        """Handle monthly attendance data loaded signal from event viewmodel
+        
+        :param attendance_data: Dictionary with month names as keys and attendance percentages as values
+        """
+        self._logger.info(f"Monthly attendance data loaded: {attendance_data}")
+        
+        # Update the attendance chart with the loaded data
+        if hasattr(self, '_chart_layout') and attendance_data:
+            # Clear existing bars
+            while self._chart_layout.count() > 0:
+                item = self._chart_layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+            
+            # Sort months to ensure chronological order (Ene, Feb, Mar, etc.)
+            # We'll create a custom sort key function based on Spanish month abbreviations
+            month_order = {"Ene": 1, "Feb": 2, "Mar": 3, "Abr": 4, "May": 5, 
+                          "Jun": 6, "Jul": 7, "Ago": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dic": 12}
+            
+            # Sort the months by their numerical order
+            sorted_months = sorted(attendance_data.items(), key=lambda x: month_order.get(x[0], 13))
+            
+            # Create new bars
+            for month, value in sorted_months:
+                bar_container = QFrame()
+                bar_container.setFixedWidth(60)
+                bar_layout = QVBoxLayout()
+                bar_container.setLayout(bar_layout)
+                
+                # Bar
+                bar = QFrame()
+                bar.setObjectName("attendance-bar")
+                bar.setFixedHeight(int(value * 2))  # Scale value to height
+                
+                # Value label (percentage)
+                value_label = QLabel(f"{value}%")
+                value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                value_label.setObjectName("attendance-value")
+                value_label.setStyleSheet("color: #000000; font-weight: bold; font-size: 13px;")
+                
+                # Month label
+                month_label = QLabel(month)
+                month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                month_label.setObjectName("month-label")
+                month_label.setStyleSheet("color: #000000; font-weight: bold; font-size: 13px;")
+                
+                bar_layout.addStretch(1)
+                bar_layout.addWidget(bar)
+                bar_layout.addWidget(value_label)
+                bar_layout.addWidget(month_label)
+                
+                self._chart_layout.addWidget(bar_container)
+    
     def _on_teachers_loaded(self, teachers) -> None:
         """Handle teachers loaded signal from teacher viewmodel
         
@@ -941,9 +1125,74 @@ class TeacherDashboardBuilder(Builder):
         """
         self._logger.info(f"Teachers loaded: {len(teachers) if teachers else 0}")
         
-        # This method would update the UI with loaded teachers
-        # For now we'll just log it
-        # The teacher UI would be updated in a real implementation
+        # Update the teachers section with data from the API
+        # First clear the current teacher list by removing all widgets
+        if hasattr(self, '_teachers_section'):
+            # Get the layout
+            teachers_layout = self._teachers_section.layout()
+            if teachers_layout:
+                # Find the horizontal layout containing teacher cards
+                for i in range(teachers_layout.count()):
+                    item = teachers_layout.itemAt(i)
+                    if isinstance(item, QHBoxLayout):
+                        # Clear all widgets from this horizontal layout
+                        while item.count() > 0:
+                            widget = item.takeAt(0).widget()
+                            if widget:
+                                widget.deleteLater()
+                        
+                        # Now add new teacher cards
+                        if teachers:
+                            for teacher in teachers[:4]:  # Limit to 4 teachers to fit the UI nicely
+                                name = f"{teacher.get('first_name', '')} {teacher.get('last_name', '')}"
+                                specialization = teacher.get('specialization', 'General')
+                                
+                                # Create teacher card
+                                teacher_card = QFrame()
+                                teacher_card.setObjectName("teacher-card")
+                                
+                                card_layout = QVBoxLayout()
+                                teacher_card.setLayout(card_layout)
+                                
+                                # Create circular profile image
+                                initials = get_initials(name)
+                                avatar = CircularImageWidget(size=60, placeholder_bg_color="#8ecaef", placeholder_text=initials)
+                                avatar.setObjectName("teacher-avatar")
+                                
+                                # Try to load profile image
+                                # Extract teacher_id properly as a string
+                                teacher_id = str(teacher.get('uuid', name.lower().replace(" ", "_")))
+                                image_path = self._profile_image_service.get_image_path(teacher_id, "teacher")
+                                avatar.setImage(image_path)
+                                
+                                # Name label (clickable)
+                                name_label = QLabel(name)
+                                name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                                name_label.setObjectName("teacher-name")
+                                name_label.setCursor(Qt.CursorShape.PointingHandCursor)
+                                
+                                # Create a proper mouse event handler
+                                teacher_name = name  # Capture the current teacher name
+                                orig_mouse_press = name_label.mousePressEvent
+                                
+                                def new_mouse_press(event, t=teacher_name):
+                                    self._handle_teacher_selected(t)
+                                    if orig_mouse_press:
+                                        orig_mouse_press(event)
+                                
+                                name_label.mousePressEvent = new_mouse_press
+                                
+                                # Subject/specialization
+                                subject_label = QLabel(specialization)
+                                subject_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                                subject_label.setObjectName("teacher-subject")
+                                
+                                card_layout.addWidget(avatar)
+                                card_layout.addWidget(name_label)
+                                card_layout.addWidget(subject_label)
+                                
+                                item.addWidget(teacher_card)
+                        break
         
     def _on_events_loaded(self, events) -> None:
         """Handle events loaded signal from event viewmodel
@@ -952,9 +1201,32 @@ class TeacherDashboardBuilder(Builder):
         """
         self._logger.info(f"Events loaded: {len(events) if events else 0}")
         
-        # This method would update the events UI with loaded events
-        # For now we'll just log it
-        # The events UI would be updated in a real implementation
+        # Update events section with the loaded events
+        if hasattr(self, '_events_section') and events:
+            # Get the layout
+            events_layout = self._events_section.layout()
+            if events_layout:
+                # Clear existing event cards
+                # Find all event cards and remove them
+                items_to_remove = []
+                for i in range(events_layout.count()):
+                    layout_item = events_layout.itemAt(i)
+                    if layout_item:
+                        widget = layout_item.widget()
+                        if widget and widget.objectName() == "event-card":
+                            items_to_remove.append(widget)
+                
+                # Remove the identified widgets
+                for widget in items_to_remove:
+                    widget.deleteLater()
+                
+                # Format events for display
+                if self._event_viewmodel:
+                    formatted_events = self._event_viewmodel.format_upcoming_events_for_display()
+                    
+                    # Add new event cards for each event
+                    for weekday, date, title, time_str, days_left in formatted_events[:3]:  # Show only 3 most recent
+                        self._create_event_card(weekday, date, title, time_str, days_left, events_layout)
         
     def _get_student_data(self) -> List[Tuple[str, str, str]]:
         """Get student data for displaying in the table

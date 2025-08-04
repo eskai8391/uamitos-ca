@@ -1,63 +1,172 @@
 /* Login Window Styles */
 
 QWidget#container {
-    background: #fdf6ed;
+    background: #f7f9fc;
 }
 
 QLabel {
-    color: #0a0907;
+    color: #333;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
-QWidget#left_pane{
-    background: #6e96a6;
+QWidget#left_pane {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #3a7bd5, stop:1 #00d2ff);
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+QLabel[objectName="app_logo"] {
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+QLabel[objectName="app_name"] {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+QLabel[objectName="app_tagline"] {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 16px;
+    font-style: italic;
 }
 
 QLabel[objectName="header"] {
-    color: #003366;
-    font-size: 24px;
+    color: #3a7bd5;
+    font-size: 26px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     padding: 10px;
+    letter-spacing: 0.5px;
 }
 
 QLineEdit,
 QPushButton {
     font-size: 16px;
-    padding: 10px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
 QLineEdit {
-    color: #0a0907;
-    border: 2px solid #6e96a6;
-    background: transparent;
+    color: #333;
+    border: 2px solid #dde1e7;
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: border 0.3s;
 }
 
 QLineEdit:focus {
-    border: 2px solid #003366;
+    border: 2px solid #3a7bd5;
+}
+
+QLabel[objectName="input_label"] {
+    color: #555;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
 QPushButton#action_button {
-    margin: 30px 0px 0px 0px;
-    background: #6e96a6;
+    margin: 25px 0px 0px 0px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #3a7bd5, stop:1 #00d2ff);
     color: white;
     font-weight: bold;
+    border: none;
+    padding: 15px;
+    font-size: 17px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, transform 0.3s;
 }
 
 QPushButton#action_button:hover {
-    color: #6e96a6;
-    border: 2px solid #6e96a6;
-    background: transparent;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4a8ce5, stop:1 #20e2ff);
+    transform: translateY(-2px);
 }
 
 QPushButton#action_button:pressed {
-    background: #003366;
-    color: white;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2a6bc5, stop:1 #00c2ef);
+    transform: translateY(1px);
 }
 
 QLabel[objectName="error-label"] {
-    color: #D32F2F;
+    color: #e74c3c;
     font-size: 14px;
     margin: 10px 0;
-    padding: 5px;
+    padding: 10px;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+QLabel[objectName="info-text"] {
+    color: #555;
+    font-size: 13px;
+    margin-top: 20px;
+}
+
+QLabel[objectName="link-text"] {
+    color: #3a7bd5;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+QLabel[objectName="link-text"]:hover {
+    color: #00d2ff;
+}
+
+QCheckBox {
+    color: #555;
+    font-size: 14px;
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    border: 2px solid #dde1e7;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #3a7bd5;
+    border: 2px solid #3a7bd5;
+}
+
+QWidget#form_container {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+QComboBox {
+    border: 2px solid #dde1e7;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+    min-width: 200px;
+}
+
+QComboBox:focus {
+    border: 2px solid #3a7bd5;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: right center;
+    width: 25px;
+    border-left: none;
+}
+
+QComboBox::down-arrow {
+    image: url("assets/icons/dropdown_arrow.png");
+    width: 12px;
+    height: 12px;
 }

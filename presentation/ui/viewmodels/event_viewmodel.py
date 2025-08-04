@@ -18,6 +18,7 @@ class EventViewModel(QObject):
     upcomingEventsLoaded = Signal(list)  # List of upcoming events
     eventDetailsLoaded = Signal(dict)  # Event details
     eventsByDateLoaded = Signal(list)  # Events for a specific date
+    monthlyAttendanceLoaded = Signal(dict)  # Monthly attendance data
     error = Signal(str)  # Error message
     
     def __init__(self, event_api_client: EventApiClient, parent: Optional[QObject] = None):
@@ -36,6 +37,7 @@ class EventViewModel(QObject):
         self._upcoming_events = []
         self._current_event = None
         self._events_by_date = {}
+        self._monthly_attendance = {}
         self._is_loading = False
         
         # Setup auto-refresh timer (refresh every 5 minutes)
@@ -202,6 +204,27 @@ class EventViewModel(QObject):
                 self._logger.warning(f"Error formatting event: {e}")
         
         return result
+    
+    @Slot(int)
+    def load_monthly_attendance(self, months: int = 5) -> None:
+        """
+        Load monthly attendance data
+        
+        :param months: Number of months to retrieve
+        """
+        self._logger.info(f"Loading monthly attendance data for the last {months} months")
+        self.is_loading = True
+        
+        try:
+            attendance_data = self._api_client.get_monthly_attendance(months)
+            self._monthly_attendance = attendance_data
+            self.monthlyAttendanceLoaded.emit(attendance_data)
+            self._logger.info(f"Loaded monthly attendance data: {attendance_data}")
+        except Exception as e:
+            self._logger.error(f"Error loading monthly attendance: {e}")
+            self.error.emit(f"Error loading monthly attendance: {str(e)}")
+        finally:
+            self.is_loading = False
     
     def dispose(self) -> None:
         """Clean up resources"""

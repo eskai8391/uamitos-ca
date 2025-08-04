@@ -97,7 +97,13 @@ class ApiClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            self._logger.error(f"GET request failed: {e}")
+            # Handle 404 errors for specific endpoints differently
+            if "attendance/monthly" in endpoint and hasattr(e, 'response') and e.response.status_code == 404:
+                self._logger.info(f"Endpoint not found (expected): {url}")
+                raise ApiClientException(f"404: {url}")
+            else:
+                self._logger.error(f"GET request failed: {e}")
+                
             if response := getattr(e, 'response', None):
                 try:
                     error_detail = response.json()

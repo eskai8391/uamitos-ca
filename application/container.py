@@ -4,8 +4,10 @@ from application.app_coordinator import AppCoordinator
 from presentation.controllers.auth_controller import AuthController
 from presentation.ui.factories import WidgetFactory, LayoutFactory
 from presentation.ui.builders.views import MainWindowBuilder, LoginWindowBuilder
-from infrastructure.api_client import ApiClient, StudentApiClient, TeacherApiClient, EventApiClient
-from presentation.ui.viewmodels import LoginViewModel, StudentViewModel, TeacherViewModel, EventViewModel
+from infrastructure.api_client import (ApiClient, StudentApiClient, TeacherApiClient, EventApiClient,
+                                     GradeApiClient, ScheduleApiClient, UserApiClient, ReportApiClient)
+from presentation.ui.viewmodels import (LoginViewModel, StudentViewModel, TeacherViewModel, EventViewModel,
+                                       GradeViewModel, ScheduleViewModel, UserViewModel, ReportViewModel)
 
 
 class AppContainer(containers.DeclarativeContainer):
@@ -29,11 +31,19 @@ class AppContainer(containers.DeclarativeContainer):
     student_api_client = providers.Factory(StudentApiClient, api_client=api_client)
     teacher_api_client = providers.Factory(TeacherApiClient, api_client=api_client)
     event_api_client = providers.Factory(EventApiClient, api_client=api_client)
+    grade_api_client = providers.Factory(GradeApiClient, api_client=api_client)
+    schedule_api_client = providers.Factory(ScheduleApiClient, api_client=api_client)
+    user_api_client = providers.Factory(UserApiClient, api_client=api_client)
+    report_api_client = providers.Factory(ReportApiClient, api_client=api_client)
     
     # ViewModels
     student_viewmodel = providers.Singleton(StudentViewModel, student_api_client=student_api_client)
     teacher_viewmodel = providers.Singleton(TeacherViewModel, teacher_api_client=teacher_api_client)
     event_viewmodel = providers.Singleton(EventViewModel, event_api_client=event_api_client)
+    grade_viewmodel = providers.Singleton(GradeViewModel, api_client=grade_api_client)
+    schedule_viewmodel = providers.Singleton(ScheduleViewModel, api_client=schedule_api_client)
+    user_viewmodel = providers.Singleton(UserViewModel, api_client=user_api_client)
+    report_viewmodel = providers.Singleton(ReportViewModel, api_client=report_api_client)
     
     # Coordinator (created after main window is built)
     coordinator = providers.Singleton(AppCoordinator)

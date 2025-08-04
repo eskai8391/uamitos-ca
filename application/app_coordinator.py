@@ -10,6 +10,8 @@ from presentation.ui.builders.views.dashboard.dashboard_window_builder import Da
 if TYPE_CHECKING:
     from application.container import AppContainer
 from presentation.ui.builders.views.dashboard.teacher_dashboard_builder import TeacherDashboardBuilder
+from presentation.ui.builders.views.dashboard.student_dashboard_builder import StudentDashboardBuilder
+from presentation.ui.builders.views.dashboard.admin_dashboard_builder import AdminDashboardBuilder
 from presentation.ui.builders.views.dashboard.student_details_builder import StudentDetailsBuilder
 from presentation.ui.builders.views.dashboard.teacher_details_builder import TeacherDetailsBuilder
 from presentation.ui.builders.views.dashboard.events_details_builder import EventsDetailsBuilder
@@ -92,38 +94,49 @@ class AppCoordinator:
             dashboard = None
             
             # Create appropriate dashboard based on role
+            # Import container and setup API clients
+            from application.container import AppContainer
+            import logging
+            
+            # Set up logger for debugging token issues
+            debug_logger = logging.getLogger("app_coordinator.dashboard")
+            
+            # Get the shared container instance
+            container = AppContainer()
+            
+            # Debug log all container objects for token verification
+            api_client = container.api_client()
+            auth_controller = container.auth_controller()
+            student_api = container.student_api_client()
+            teacher_api = container.teacher_api_client()
+            
+            debug_logger.info(f"Token check - Main API client: {id(api_client)}, has token: {bool(api_client._token)}")
+            debug_logger.info(f"Token check - Auth controller API: {id(auth_controller._api_client)}, shared: {auth_controller._api_client is api_client}")
+            debug_logger.info(f"Token check - StudentApiClient base API: {id(student_api._api_client)}, shared: {student_api._api_client is api_client}")
+            debug_logger.info(f"Token check - TeacherApiClient base API: {id(teacher_api._api_client)}, shared: {teacher_api._api_client is api_client}")
+            
+            # Always explicitly set the token on all API clients to ensure consistency
+            if hasattr(auth_controller, '_current_user') and auth_controller._current_user:
+                token = auth_controller._current_user.token
+                debug_logger.info(f"Setting token from auth_controller to all API clients: {token[:10]}...")
+                # Set token on all API client instances to ensure consistency
+                api_client.set_token(token)
+                student_api._api_client.set_token(token)
+                teacher_api._api_client.set_token(token)
+            
+            # Create container for dashboard and detail views
+            self._dashboard_container = QWidget()
+            container_layout = QVBoxLayout()
+            self._dashboard_container.setLayout(container_layout)
+            
+            # Create stack for main dashboard and detail views
+            self._dashboard_stack = QStackedWidget()
+            container_layout.addWidget(self._dashboard_stack)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+            
             if user_role == UserRole.TEACHER:
                 # Create teacher dashboard
                 self._logger.info(f"Creating teacher dashboard for {full_name}")
-                # Get container instance and view models
-                from application.container import AppContainer
-                import logging
-                
-                # Set up logger for debugging token issues
-                debug_logger = logging.getLogger("app_coordinator.dashboard")
-                
-                # Get the shared container instance
-                container = AppContainer()
-                
-                # Debug log all container objects for token verification
-                api_client = container.api_client()
-                auth_controller = container.auth_controller()
-                student_api = container.student_api_client()
-                teacher_api = container.teacher_api_client()
-                
-                debug_logger.info(f"Token check - Main API client: {id(api_client)}, has token: {bool(api_client._token)}")
-                debug_logger.info(f"Token check - Auth controller API: {id(auth_controller._api_client)}, shared: {auth_controller._api_client is api_client}")
-                debug_logger.info(f"Token check - StudentApiClient base API: {id(student_api._api_client)}, shared: {student_api._api_client is api_client}")
-                debug_logger.info(f"Token check - TeacherApiClient base API: {id(teacher_api._api_client)}, shared: {teacher_api._api_client is api_client}")
-                
-                # Always explicitly set the token on all API clients to ensure consistency
-                if hasattr(auth_controller, '_current_user') and auth_controller._current_user:
-                    token = auth_controller._current_user.token
-                    debug_logger.info(f"Setting token from auth_controller to all API clients: {token[:10]}...")
-                    # Set token on all API client instances to ensure consistency
-                    api_client.set_token(token)
-                    student_api._api_client.set_token(token)
-                    teacher_api._api_client.set_token(token)
                 
                 teacher_dashboard_builder = TeacherDashboardBuilder(
                     wf=self._widget_factory,
@@ -140,27 +153,64 @@ class AppCoordinator:
                 self._last_dashboard_builder = teacher_dashboard_builder
                 self._dashboard_builder = teacher_dashboard_builder
                 
-                # We've already set the logout handler in constructor
-                
                 # Create main dashboard
-                teacher_dashboard = teacher_dashboard_builder.build()
-                
-                # Create container for dashboard and detail views
-                self._dashboard_container = QWidget()
-                container_layout = QVBoxLayout()
-                self._dashboard_container.setLayout(container_layout)
-                
-                # Create stack for main dashboard and detail views
-                self._dashboard_stack = QStackedWidget()
-                container_layout.addWidget(self._dashboard_stack)
-                container_layout.setContentsMargins(0, 0, 0, 0)
+                dashboard_view = teacher_dashboard_builder.build()
                 
                 # Add teacher dashboard as the first view
-                self._dashboard_stack.addWidget(teacher_dashboard)
-                self._dashboard_views["main"] = teacher_dashboard
+                self._dashboard_stack.addWidget(dashboard_view)
+                self._dashboard_views["main"] = dashboard_view
                 
-                # Use container as the dashboard
-                dashboard = self._dashboard_container
+            elif user_role == UserRole.STUDENT:
+                # Create student dashboard
+                self._logger.info(f"Creating student dashboard for {full_name}")
+                
+                student_dashboard_builder = StudentDashboardBuilder(
+                    wf=self._widget_factory,
+                    lf=self._layout_factory,
+                    student_name=full_name,
+                    on_logout=self.handle_logout,
+                    on_navigate=self.handle_dashboard_navigation,
+                    grade_viewmodel=container.grade_viewmodel() if hasattr(container, 'grade_viewmodel') else None,
+                    schedule_viewmodel=container.schedule_viewmodel() if hasattr(container, 'schedule_viewmodel') else None,
+                    student_viewmodel=container.student_viewmodel() if hasattr(container, 'student_viewmodel') else None
+                )
+                
+                # Set builder for future reference
+                self._last_dashboard_builder = student_dashboard_builder
+                self._dashboard_builder = student_dashboard_builder
+                
+                # Create main dashboard
+                dashboard_view = student_dashboard_builder.build()
+                
+                # Add student dashboard as the first view
+                self._dashboard_stack.addWidget(dashboard_view)
+                self._dashboard_views["main"] = dashboard_view
+                
+            elif user_role == UserRole.ADMIN:
+                # Create admin dashboard
+                self._logger.info(f"Creating admin dashboard for {full_name}")
+                
+                admin_dashboard_builder = AdminDashboardBuilder(
+                    wf=self._widget_factory,
+                    lf=self._layout_factory,
+                    admin_name=full_name,
+                    on_logout=self.handle_logout,
+                    on_navigate=self.handle_dashboard_navigation,
+                    user_viewmodel=container.user_viewmodel() if hasattr(container, 'user_viewmodel') else None,
+                    report_viewmodel=container.report_viewmodel() if hasattr(container, 'report_viewmodel') else None
+                )
+                
+                # Set builder for future reference
+                self._last_dashboard_builder = admin_dashboard_builder
+                self._dashboard_builder = admin_dashboard_builder
+                
+                # Create main dashboard
+                dashboard_view = admin_dashboard_builder.build()
+                
+                # Add admin dashboard as the first view
+                self._dashboard_stack.addWidget(dashboard_view)
+                self._dashboard_views["main"] = dashboard_view
+                
             else:
                 # Create default dashboard for other roles
                 self._logger.info(f"Creating standard dashboard for {full_name} with role {role}")
@@ -172,7 +222,14 @@ class AppCoordinator:
                     on_logout=self.handle_logout
                 )
                 
-                dashboard = dashboard_builder.build()
+                dashboard_view = dashboard_builder.build()
+                
+                # Add default dashboard as the first view
+                self._dashboard_stack.addWidget(dashboard_view)
+                self._dashboard_views["main"] = dashboard_view
+                
+            # Use container as the dashboard
+            dashboard = self._dashboard_container
             
             # Add to stacked widget and register page
             index = self._stacked_widget.addWidget(dashboard)
@@ -359,6 +416,15 @@ class AppCoordinator:
             elif action == "teacher_details":
                 self._show_teacher_details(param)
                 return
+        
+        # If using custom dashboard builders (teacher, student, admin), let them handle internal navigation
+        if self._dashboard_builder and hasattr(self._dashboard_builder, "_handle_navigation"):
+            try:
+                # Forward the navigation to the dashboard builder
+                self._dashboard_builder._handle_navigation(section)
+                return
+            except Exception as e:
+                self._logger.error(f"Error handling navigation in dashboard builder: {e}")
         
         # Return to main dashboard view for standard sections
         if self._dashboard_stack and "main" in self._dashboard_views:
