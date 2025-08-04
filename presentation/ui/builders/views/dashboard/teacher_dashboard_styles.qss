@@ -16,6 +16,49 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+#welcome-info-frame {
+    background-color: white;
+    color: #333333;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#instructions-title, #buttons-title {
+    color: #3a7bd5;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+#instructions-text {
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+#quick-access-button {
+    background-color: #3a7bd5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s;
+    margin-right: 10px;
+}
+
+#quick-access-button:hover {
+    background-color: #2a6bc5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
 #welcome-message {
     color: white;
     font-size: 28px;

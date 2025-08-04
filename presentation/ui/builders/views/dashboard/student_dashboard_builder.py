@@ -96,7 +96,7 @@ class StudentDashboardBuilder(Builder):
         """Create left navigation panel"""
         self._nav_panel = QFrame()
         self._nav_panel.setObjectName("nav-panel")
-        self._nav_panel.setFixedWidth(120)
+        self._nav_panel.setFixedWidth(160)
 
         nav_layout = QVBoxLayout()
         self._nav_panel.setLayout(nav_layout)
@@ -111,8 +111,7 @@ class StudentDashboardBuilder(Builder):
             ("Inicio", "inicio"),
             ("Calificaciones", "calificaciones"),
             ("Horario", "horario"),
-            ("Notificaciones", "notificaciones"),
-            ("Configuración", "configuracion")
+            ("Notificaciones", "notificaciones")
         ]
 
         self._nav_buttons = {}
@@ -455,30 +454,106 @@ class StudentDashboardBuilder(Builder):
 
         # Left navigation panel (spans all rows)
         self._main_layout.addWidget(self._nav_panel, 0, 0, 6, 1)
-
-        # Second row: welcome banner
-        self._main_layout.addWidget(self._welcome_banner, 1, 1, 1, 3)
-
-        # Third row: grades section
-        self._main_layout.addWidget(self._grades_section, 2, 1, 2, 3)
-
-        # Fourth row: schedule section
-        self._main_layout.addWidget(self._schedule_section, 4, 1, 1, 2)
         
-        # Fourth row, right column: notifications section
-        self._main_layout.addWidget(self._notifications_section, 4, 3, 1, 1)
-
+        # Create a stacked widget to hold different content pages
+        self._content_stack = QStackedWidget()
+        
+        # Create page for "inicio" tab (welcome/home)
+        home_page = QWidget()
+        home_layout = QVBoxLayout(home_page)
+        home_layout.addWidget(self._welcome_banner)
+        
+        # Create welcome info for home page
+        info_frame = QFrame()
+        info_frame.setObjectName("welcome-info-frame")
+        info_layout = QVBoxLayout(info_frame)
+        
+        instructions_title = QLabel("Bienvenido a tu panel de estudiante")
+        instructions_title.setObjectName("instructions-title")
+        info_layout.addWidget(instructions_title)
+        
+        instructions_text = QLabel(
+            "<p>Este es tu panel de control como estudiante. Aquí podrás:</p>"
+            "<ul>"
+            "<li>Consultar tus <b>calificaciones</b> y promedio general</li>"
+            "<li>Ver tu <b>horario</b> de clases por semana</li>"
+            "<li>Revisar tus <b>notificaciones</b> y avisos importantes</li>"
+            "</ul>"
+            "<p>Utiliza la navegación de la izquierda para acceder a las diferentes secciones.</p>"
+        )
+        instructions_text.setWordWrap(True)
+        instructions_text.setObjectName("instructions-text")
+        info_layout.addWidget(instructions_text)
+        
+        buttons_layout = QHBoxLayout()
+        
+        grades_button = QPushButton("Ver Calificaciones")
+        grades_button.setObjectName("quick-access-button")
+        grades_button.clicked.connect(lambda: self._handle_navigation("calificaciones"))
+        
+        schedule_button = QPushButton("Ver Horario")
+        schedule_button.setObjectName("quick-access-button")
+        schedule_button.clicked.connect(lambda: self._handle_navigation("horario"))
+        
+        notifications_button = QPushButton("Ver Notificaciones")
+        notifications_button.setObjectName("quick-access-button")
+        notifications_button.clicked.connect(lambda: self._handle_navigation("notificaciones"))
+        
+        buttons_layout.addWidget(grades_button)
+        buttons_layout.addWidget(schedule_button)
+        buttons_layout.addWidget(notifications_button)
+        
+        info_layout.addLayout(buttons_layout)
+        home_layout.addWidget(info_frame)
+        home_layout.addStretch(1)
+        
+        # Create page for "calificaciones" tab
+        grades_page = QWidget()
+        grades_layout = QVBoxLayout(grades_page)
+        grades_layout.addWidget(self._grades_section)
+        grades_layout.addStretch(1)
+        
+        # Create page for "horario" tab
+        schedule_page = QWidget()
+        schedule_layout = QVBoxLayout(schedule_page)
+        schedule_layout.addWidget(self._schedule_section)
+        schedule_layout.addStretch(1)
+        
+        # Create page for "notificaciones" tab
+        notifications_page = QWidget()
+        notifications_layout = QVBoxLayout(notifications_page)
+        notifications_layout.addWidget(self._notifications_section)
+        notifications_layout.addStretch(1)
+        
+        # Add all pages to the stack
+        self._content_stack.addWidget(home_page)           # Index 0: inicio
+        self._content_stack.addWidget(grades_page)         # Index 1: calificaciones
+        self._content_stack.addWidget(schedule_page)       # Index 2: horario
+        self._content_stack.addWidget(notifications_page)  # Index 3: notificaciones
+        
+        # Set initial page to calificaciones (matches default in _current_section)
+        self._content_stack.setCurrentIndex(1)
+        
+        # Store the page indices for navigation
+        self._page_indices = {
+            "inicio": 0,
+            "calificaciones": 1,
+            "horario": 2,
+            "notificaciones": 3
+        }
+        
+        # Add the stacked widget to the main layout
+        self._main_layout.addWidget(self._content_stack, 1, 1, 5, 3)
+        
         # Set column and row stretches
         self._main_layout.setColumnStretch(0, 0)  # Navigation doesn't stretch
         self._main_layout.setColumnStretch(1, 1)
         self._main_layout.setColumnStretch(2, 1)
         self._main_layout.setColumnStretch(3, 1)
 
+        # Set row stretches
         self._main_layout.setRowStretch(0, 0)  # Header row doesn't stretch
-        self._main_layout.setRowStretch(1, 0)  # Welcome banner doesn't stretch
-        self._main_layout.setRowStretch(2, 2)  # Grades stretches more
-        self._main_layout.setRowStretch(3, 0)  
-        self._main_layout.setRowStretch(4, 1)  # Schedule and notifications stretch less
+        self._main_layout.setRowStretch(1, 1)  # Content area stretches
 
     def _apply_styles(self) -> None:
         """Apply styles to the dashboard"""
@@ -534,7 +609,7 @@ class StudentDashboardBuilder(Builder):
                 }
 
                 #welcome-message {
-                    color: white;
+                    color: black;
                     font-size: 28px;
                     font-weight: bold;
                     margin-bottom: 10px;
@@ -571,6 +646,49 @@ class StudentDashboardBuilder(Builder):
 
                 #action-button:hover {
                     background-color: rgba(255, 255, 255, 0.9);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                }
+                
+                /* Welcome info frame */
+                #welcome-info-frame {
+                    background-color: white;
+                    color: #333333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin-top: 20px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+
+                #instructions-title {
+                    color: #3a7bd5;
+                    font-size: 18px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                    font-family: "Segoe UI", Arial, sans-serif;
+                }
+
+                #instructions-text {
+                    color: #333333;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    margin-bottom: 15px;
+                }
+
+                #quick-access-button {
+                    background-color: #3a7bd5;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 10px 15px;
+                    font-weight: bold;
+                    font-size: 14px;
+                    transition: all 0.3s;
+                    margin-right: 10px;
+                }
+
+                #quick-access-button:hover {
+                    background-color: #2a6bc5;
                     transform: translateY(-2px);
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
                 }
@@ -749,28 +867,10 @@ class StudentDashboardBuilder(Builder):
         for btn_id, btn in self._nav_buttons.items():
             btn.setChecked(btn_id == section)
             
-        # Update content visibility based on selected section
-        if section == "calificaciones":
-            if hasattr(self, '_grades_section'):
-                self._grades_section.setVisible(True)
-            if hasattr(self, '_schedule_section'):
-                self._schedule_section.setVisible(False)
-            if hasattr(self, '_notifications_section'):
-                self._notifications_section.setVisible(False)
-        elif section == "horario":
-            if hasattr(self, '_grades_section'):
-                self._grades_section.setVisible(False)
-            if hasattr(self, '_schedule_section'):
-                self._schedule_section.setVisible(True)
-            if hasattr(self, '_notifications_section'):
-                self._notifications_section.setVisible(False)
-        elif section == "notificaciones":
-            if hasattr(self, '_grades_section'):
-                self._grades_section.setVisible(False)
-            if hasattr(self, '_schedule_section'):
-                self._schedule_section.setVisible(False)
-            if hasattr(self, '_notifications_section'):
-                self._notifications_section.setVisible(True)
+        # Switch to the appropriate tab using the stacked widget
+        if section in self._page_indices:
+            self._content_stack.setCurrentIndex(self._page_indices[section])
+            self._logger.info(f"Switched to tab index {self._page_indices[section]} for section {section}")
                 
         # Trigger data loading based on the selected section
         if section == "calificaciones" and self._grade_viewmodel:

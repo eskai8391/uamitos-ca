@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Callable, Dict, Optional, List, Tuple, Any
 from PySide6.QtCore import Qt, QSize, Signal, QTimer
 from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QGridLayout, QFrame,
@@ -99,7 +100,7 @@ class AdminDashboardBuilder(Builder):
         """Create left navigation panel"""
         self._nav_panel = QFrame()
         self._nav_panel.setObjectName("nav-panel")
-        self._nav_panel.setFixedWidth(120)
+        self._nav_panel.setFixedWidth(160)
 
         nav_layout = QVBoxLayout()
         self._nav_panel.setLayout(nav_layout)
@@ -114,8 +115,7 @@ class AdminDashboardBuilder(Builder):
             ("Inicio", "inicio"),
             ("Usuarios", "usuarios"),
             ("Reportes", "reportes"),
-            ("Asignaciones", "asignaciones"),
-            ("Configuración", "configuracion")
+            ("Asignaciones", "asignaciones")
         ]
 
         self._nav_buttons = {}
@@ -128,8 +128,8 @@ class AdminDashboardBuilder(Builder):
             if item_id == "usuarios":
                 btn.setChecked(True)
                 
-            # Ensure button text is visible
-            btn.setStyleSheet("color: white; font-weight: bold;")
+            # Ensure button text is visible and consistent with other dashboards
+            btn.setStyleSheet("color: white; font-weight: bold; font-size: 15px;")
 
             # Connect navigation button to handler
             btn.clicked.connect(lambda checked, section=item_id: self._handle_navigation(section))
@@ -153,9 +153,11 @@ class AdminDashboardBuilder(Builder):
         
         welcome_message = QLabel(f"¡Bienvenido, {self._admin_name}!")
         welcome_message.setObjectName("welcome-message")
+        welcome_message.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
         
         welcome_description = QLabel("Administra usuarios, genera reportes y gestiona asignaciones de materias y profesores")
         welcome_description.setObjectName("welcome-description")
+        welcome_description.setStyleSheet("color: rgba(255, 255, 255, 0.9); font-size: 16px;")
         
         welcome_text_container.addWidget(welcome_message)
         welcome_text_container.addWidget(welcome_description)
@@ -164,6 +166,7 @@ class AdminDashboardBuilder(Builder):
         # Action button
         action_button = QPushButton("Gestionar Usuarios")
         action_button.setObjectName("action-button")
+        action_button.setStyleSheet("background-color: white; color: #3a7bd5; border: none; border-radius: 6px; padding: 10px 18px; font-weight: bold; font-size: 15px;")
         action_button.clicked.connect(lambda: self._handle_navigation("usuarios"))
         welcome_text_container.addWidget(action_button)
         
@@ -171,6 +174,7 @@ class AdminDashboardBuilder(Builder):
         admin_image = QLabel("👨‍💼")
         admin_image.setObjectName("admin-image")
         admin_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        admin_image.setStyleSheet("font-size: 70px; color: white; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);")
         
         welcome_layout.addLayout(welcome_text_container, 2)
         welcome_layout.addWidget(admin_image, 1)
@@ -243,7 +247,9 @@ class AdminDashboardBuilder(Builder):
         users_data = self._get_users_data()
         self._populate_users_table(users_data)
 
-        users_layout.addWidget(self._users_table)
+        # Make the table take almost all available space
+        self._users_table.setMinimumHeight(500)
+        users_layout.addWidget(self._users_table, 1)  # Add stretch factor to make table expand
         
     def _populate_users_table(self, users_data: List[Dict[str, Any]]) -> None:
         """
@@ -385,7 +391,9 @@ class AdminDashboardBuilder(Builder):
             
             self._recent_reports_table.setCellWidget(row, 2, download_widget)
             
-        reports_layout.addWidget(self._recent_reports_table)
+        # Make the reports table take more vertical space
+        self._recent_reports_table.setMinimumHeight(300)
+        reports_layout.addWidget(self._recent_reports_table, 1)  # Add stretch factor
         
     def _create_report_card(self, report: Dict[str, str]) -> QFrame:
         """
@@ -510,7 +518,9 @@ class AdminDashboardBuilder(Builder):
             
             self._assignments_table.setCellWidget(row, 4, actions_widget)
             
-        assignments_layout.addWidget(self._assignments_table)
+        # Make the assignments table take more vertical space
+        self._assignments_table.setMinimumHeight(400)
+        assignments_layout.addWidget(self._assignments_table, 1)  # Add stretch factor
 
     def _create_user_info(self) -> None:
         """Create user info section in header"""
@@ -557,32 +567,129 @@ class AdminDashboardBuilder(Builder):
 
         # Left navigation panel (spans all rows)
         self._main_layout.addWidget(self._nav_panel, 0, 0, 6, 1)
-
-        # Second row: welcome banner
-        self._main_layout.addWidget(self._welcome_banner, 1, 1, 1, 3)
-
-        # Third row: users section
-        self._main_layout.addWidget(self._users_section, 2, 1, 1, 3)
-
-        # Fourth row: reports and assignments sections
-        self._main_layout.addWidget(self._reports_section, 3, 1, 1, 1)
-        self._main_layout.addWidget(self._assignments_section, 3, 2, 1, 2)
-
-        # Set column and row stretches
+        
+        # Create a stacked widget to hold different content pages
+        self._content_stack = QStackedWidget()
+        
+        # Create page for "inicio" tab (welcome/home)
+        home_page = QWidget()
+        home_layout = QVBoxLayout(home_page)
+        home_layout.addWidget(self._welcome_banner)
+        
+        # Create welcome info for home page similar to student dashboard
+        info_frame = QFrame()
+        info_frame.setObjectName("welcome-info-frame")
+        info_layout = QVBoxLayout(info_frame)
+        
+        instructions_title = QLabel("Bienvenido a tu panel de administrador")
+        instructions_title.setObjectName("instructions-title")
+        instructions_title.setStyleSheet("color: #3a7bd5; font-size: 18px; font-weight: bold;")
+        info_layout.addWidget(instructions_title)
+        
+        instructions_text = QLabel(
+            "<p>Este es tu panel de control como administrador. Aquí podrás:</p>"
+            "<ul>"
+            "<li>Gestionar <b>usuarios</b> del sistema (profesores y estudiantes)</li>"
+            "<li>Generar <b>reportes</b> de asistencia, calificaciones y rendimiento</li>"
+            "<li>Administrar las <b>asignaciones</b> de profesores y materias</li>"
+            "</ul>"
+            "<p>Utiliza la navegación de la izquierda para acceder a las diferentes secciones.</p>"
+        )
+        instructions_text.setWordWrap(True)
+        instructions_text.setObjectName("instructions-text")
+        instructions_text.setStyleSheet("color: #333333; font-size: 14px;")
+        info_layout.addWidget(instructions_text)
+        
+        buttons_layout = QHBoxLayout()
+        
+        users_button = QPushButton("Gestionar Usuarios")
+        users_button.setObjectName("quick-access-button")
+        users_button.clicked.connect(lambda: self._handle_navigation("usuarios"))
+        users_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
+        
+        reports_button = QPushButton("Generar Reportes")
+        reports_button.setObjectName("quick-access-button")
+        reports_button.clicked.connect(lambda: self._handle_navigation("reportes"))
+        reports_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
+        
+        assignments_button = QPushButton("Ver Asignaciones")
+        assignments_button.setObjectName("quick-access-button")
+        assignments_button.clicked.connect(lambda: self._handle_navigation("asignaciones"))
+        assignments_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
+        
+        buttons_layout.addWidget(users_button)
+        buttons_layout.addWidget(reports_button)
+        buttons_layout.addWidget(assignments_button)
+        
+        info_layout.addLayout(buttons_layout)
+        home_layout.addWidget(info_frame)
+        home_layout.addStretch(1)
+        
+        # Create page for "usuarios" tab
+        users_page = QWidget()
+        users_layout = QVBoxLayout(users_page)
+        users_layout.addWidget(self._users_section)
+        users_layout.addStretch(1)
+        
+        # Create page for "reportes" tab
+        reports_page = QWidget()
+        reports_layout = QVBoxLayout(reports_page)
+        reports_layout.addWidget(self._reports_section)
+        reports_layout.addStretch(1)
+        
+        # Create page for "asignaciones" tab
+        assignments_page = QWidget()
+        assignments_layout = QVBoxLayout(assignments_page)
+        assignments_layout.addWidget(self._assignments_section)
+        assignments_layout.addStretch(1)
+        
+        # No configuration page anymore
+        
+        # Add all pages to the stack
+        self._content_stack.addWidget(home_page)      # Index 0: inicio
+        self._content_stack.addWidget(users_page)     # Index 1: usuarios
+        self._content_stack.addWidget(reports_page)   # Index 2: reportes
+        self._content_stack.addWidget(assignments_page)  # Index 3: asignaciones
+        
+        # Set initial page
+        self._content_stack.setCurrentIndex(1)  # Start with usuarios as default
+        
+        # Add the stacked widget to the main layout
+        self._main_layout.addWidget(self._content_stack, 1, 1, 5, 3)
+        
+        # Set column stretches
         self._main_layout.setColumnStretch(0, 0)  # Navigation doesn't stretch
-        self._main_layout.setColumnStretch(1, 1)
-        self._main_layout.setColumnStretch(2, 1)
-        self._main_layout.setColumnStretch(3, 1)
+        self._main_layout.setColumnStretch(1, 2)  # Give more space to the content area
+        self._main_layout.setColumnStretch(2, 2)
+        self._main_layout.setColumnStretch(3, 2)
 
+        # Set row stretches
         self._main_layout.setRowStretch(0, 0)  # Header row doesn't stretch
-        self._main_layout.setRowStretch(1, 0)  # Welcome banner doesn't stretch
-        self._main_layout.setRowStretch(2, 2)  # Users section stretches more
-        self._main_layout.setRowStretch(3, 1)  # Reports and assignments stretch less
+        self._main_layout.setRowStretch(1, 1)  # Content area stretches
+        
+        # Store the page indices for navigation
+        self._page_indices = {
+            "inicio": 0,
+            "usuarios": 1,
+            "reportes": 2,
+            "asignaciones": 3
+        }
 
     def _apply_styles(self) -> None:
         """Apply styles to the dashboard"""
-        # Main styles
-        self._container.setStyleSheet("""
+        # Get style sheet path for external CSS file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        style_path = os.path.join(current_dir, "admin_dashboard_styles.qss")
+        
+        # Apply stylesheet if it exists
+        if os.path.exists(style_path):
+            with open(style_path, "r") as f:
+                self._container.setStyleSheet(f.read())
+                self._logger.info(f"Applied admin dashboard styles from {style_path}")
+        else:
+            self._logger.warning(f"Admin dashboard style file not found at {style_path}")
+            # Fallback styles if external file is not found
+            self._container.setStyleSheet("""
                 #admin-dashboard-container {
                     background-color: #f8f9fa;
                 }

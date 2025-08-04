@@ -1,2 +1,2 @@
 # Import routes to make them available as package members
-from presentation.api.routes import student_routes, auth_routes, teacher_routes, event_routes
+from presentation.api.routes import student_routes, auth_routes, teacher_routes, event_routes, grade_routes, schedule_routes, user_routes, report_routes

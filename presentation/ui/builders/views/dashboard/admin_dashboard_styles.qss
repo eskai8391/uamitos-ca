@@ -1,0 +1,322 @@
+/* Admin Dashboard Styles */
+
+/* Main Container */
+#admin-dashboard-container {
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+/* Navigation Panel */
+#nav-panel {
+    background-color: #3a7bd5;
+    border-radius: 10px;
+    padding: 15px 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#app-logo {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[id^="nav-"] {
+    background-color: transparent;
+    border: none;
+    color: white;
+    text-align: left;
+    padding: 12px 15px;
+    margin: 4px 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+[id^="nav-"]:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[id^="nav-"]:checked, [id^="nav-"]:pressed {
+    background-color: white;
+    color: #3a7bd5;
+}
+
+/* Welcome Section */
+#welcome-container {
+    background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#welcome-info-frame {
+    background-color: white;
+    color: #333333;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#instructions-title, #buttons-title {
+    color: #3a7bd5;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+#instructions-text {
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+#quick-access-button {
+    background-color: #3a7bd5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s;
+    margin-right: 10px;
+}
+
+#quick-access-button:hover {
+    background-color: #2a6bc5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+#welcome-message {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+#welcome-description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-weight: 500;
+}
+
+#action-button {
+    background-color: white;
+    color: #3a7bd5;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-weight: bold;
+    font-size: 15px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#action-button:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+#admin-image {
+    font-size: 70px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Section Containers */
+#users-section, #reports-section, #assignments-section {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Section titles */
+#section-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #3a7bd5;
+    margin-bottom: 15px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    letter-spacing: 0.5px;
+}
+
+/* Add buttons */
+#add-button, #generate-button {
+    background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#add-button:hover, #generate-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Filter controls */
+QComboBox {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 15px;
+    background-color: white;
+    selection-background-color: #3a7bd5;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox::down-arrow {
+    image: url(down-arrow.png);
+    width: 14px;
+    height: 14px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    selection-background-color: #3a7bd5;
+}
+
+/* Search box */
+QLineEdit {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 15px;
+    background-color: white;
+    font-size: 14px;
+}
+
+QLineEdit:focus {
+    border: 1px solid #3a7bd5;
+}
+
+/* Tables */
+QTableWidget {
+    border: none;
+    border-radius: 6px;
+    background-color: white;
+    gridline-color: #f0f0f0;
+    font-size: 14px;
+}
+
+QTableWidget::item {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+QTableWidget::item:selected {
+    background-color: rgba(58, 123, 213, 0.1);
+    color: #3a7bd5;
+}
+
+QHeaderView::section {
+    background-color: #3a7bd5;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: "Segoe UI", Arial, sans-serif;
+    border: none;
+}
+
+/* User Management Table */
+#users-table {
+    margin-top: 15px;
+}
+
+#users-table QHeaderView::section {
+    background-color: #3a7bd5;
+    padding: 12px 15px;
+}
+
+/* Status indicators */
+#status-active {
+    color: #34a853;
+    background-color: rgba(52, 168, 83, 0.15);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+#status-inactive {
+    color: #ea4335;
+    background-color: rgba(234, 67, 53, 0.15);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Action buttons in tables */
+#action-edit, #action-delete {
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+}
+
+#action-edit {
+    color: #3a7bd5;
+}
+
+#action-delete {
+    color: #ea4335;
+}
+
+/* Reports Section */
+#report-type-selector, #report-date-picker {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background-color: white;
+    width: 100%;
+}
+
+/* Recent Reports Table */
+#reports-table {
+    margin-top: 20px;
+}
+
+/* Assignments Section */
+#assignments-table {
+    margin-top: 20px;
+}
+
+#assignments-header {
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #3a7bd5;
+}

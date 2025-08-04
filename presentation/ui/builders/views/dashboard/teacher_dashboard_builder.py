@@ -102,7 +102,7 @@ class TeacherDashboardBuilder(Builder):
         """Create left navigation panel"""
         self._nav_panel = QFrame()
         self._nav_panel.setObjectName("nav-panel")
-        self._nav_panel.setFixedWidth(120)
+        self._nav_panel.setFixedWidth(160)
 
         nav_layout = QVBoxLayout()
         self._nav_panel.setLayout(nav_layout)
@@ -117,8 +117,7 @@ class TeacherDashboardBuilder(Builder):
             ("Inicio", "inicio"),
             ("Estudiantes", "estudiantes"),
             ("Profesores", "profesores"),
-            ("Eventos", "eventos"),
-            ("Configuración", "configuracion")
+            ("Eventos", "eventos")
         ]
 
         self._nav_buttons = {}
@@ -309,39 +308,66 @@ class TeacherDashboardBuilder(Builder):
         # Card container
         card = QFrame()
         card.setObjectName("event-card")
+        card.setStyleSheet("""
+            #event-card {
+                background-color: white;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+                margin: 5px 0;
+            }
+        """)
 
         card_layout = QHBoxLayout()
+        card_layout.setContentsMargins(10, 10, 10, 10)  # Add padding inside card
         card.setLayout(card_layout)
 
         # Left side with date
         date_container = QFrame()
         date_container.setObjectName("event-date")
-        date_container.setFixedWidth(60)
+        date_container.setFixedWidth(70)  # Slightly wider for better alignment
+        date_container.setStyleSheet("""
+            #event-date {
+                background-color: #3a7bd5;
+                color: white;
+                border-radius: 6px;
+                padding: 3px;
+            }
+        """)
 
         date_layout = QVBoxLayout()
+        date_layout.setContentsMargins(5, 8, 5, 8)  # More vertical space
         date_container.setLayout(date_layout)
 
         day_label = QLabel(day)
         day_label.setObjectName("event-day")
+        day_label.setStyleSheet("color: white; font-weight: bold; font-size: 14px;")
+        day_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         date_number = QLabel(date)
         date_number.setObjectName("event-date-number")
+        date_number.setStyleSheet("color: white; font-weight: bold; font-size: 18px;")
+        date_number.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         date_month = QLabel("Jul.")
         date_month.setObjectName("event-month")
+        date_month.setStyleSheet("color: white; font-size: 12px;")
+        date_month.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        date_layout.addWidget(day_label, 0, Qt.AlignmentFlag.AlignCenter)
-        date_layout.addWidget(date_number, 0, Qt.AlignmentFlag.AlignCenter)
-        date_layout.addWidget(date_month, 0, Qt.AlignmentFlag.AlignCenter)
+        date_layout.addWidget(day_label)
+        date_layout.addWidget(date_number)
+        date_layout.addWidget(date_month)
 
         # Right side with event details
         details_container = QFrame()
         details_layout = QVBoxLayout()
+        details_layout.setContentsMargins(10, 2, 2, 2)  # Add left padding for spacing
         details_container.setLayout(details_layout)
 
         event_title = QLabel(title)
         event_title.setObjectName("event-title")
         event_title.setStyleSheet("color: #000000; font-weight: bold; font-size: 14px;")
+        # Make sure title wraps properly
+        event_title.setWordWrap(True)
 
         event_time = QLabel(f"🕓 {time}")
         event_time.setObjectName("event-time")
@@ -349,11 +375,20 @@ class TeacherDashboardBuilder(Builder):
 
         details_layout.addWidget(event_title)
         details_layout.addWidget(event_time)
+        details_layout.addStretch(1)  # Push content to the top
 
         # Days left label on the right
         days_left_label = QLabel(days_left)
         days_left_label.setObjectName("days-left")
-        days_left_label.setStyleSheet("color: #000000; font-weight: 500; font-size: 12px;")
+        days_left_label.setStyleSheet("""
+            color: #ffffff; 
+            font-weight: bold; 
+            font-size: 12px;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            padding: 3px 8px;
+        """)
+        days_left_label.setFixedHeight(24)  # Fixed height for better alignment
 
         # Assemble card
         card_layout.addWidget(date_container)
@@ -406,6 +441,30 @@ class TeacherDashboardBuilder(Builder):
         # Store the chart layout for later updates
         self._chart_layout = chart_layout
 
+        # Set a minimum height for the chart container to ensure it displays properly
+        chart_frame.setMinimumHeight(240)
+        chart_frame.setStyleSheet("""
+            #chart-container {
+                background-color: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 10px;
+            }
+        """)
+        
+        # Add a chart title inside the container
+        chart_title_container = QWidget()
+        chart_title_layout = QHBoxLayout(chart_title_container)
+        chart_title_layout.setContentsMargins(5, 0, 5, 0)
+        
+        attendance_chart_title = QLabel("Porcentaje de Asistencia")
+        attendance_chart_title.setStyleSheet("color: #555; font-size: 14px; font-weight: bold;")
+        
+        chart_title_layout.addWidget(attendance_chart_title)
+        chart_title_layout.addStretch(1)
+        
+        attendance_layout.addWidget(chart_title_container)
+        
         # Load monthly attendance data from API via viewmodel
         if self._event_viewmodel:
             self._event_viewmodel.load_monthly_attendance(5)  # Load data for 5 months
@@ -421,18 +480,45 @@ class TeacherDashboardBuilder(Builder):
                 bar_container.setFixedWidth(60)
                 bar_layout = QVBoxLayout()
                 bar_container.setLayout(bar_layout)
+                
+                # Value label (percentage)
+                value_label = QLabel(f"{value}%")
+                value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                value_label.setStyleSheet("color: #000000; font-weight: bold; font-size: 13px;")
 
-                # Bar
+                # Bar with gradient based on value
                 bar = QFrame()
                 bar.setObjectName("attendance-bar")
-                bar.setFixedHeight(int(value * 2))  # Scale value to height
+                bar.setFixedHeight(int(value * 1.8))  # Scale value to height
+                
+                # Apply color based on value
+                if value >= 90:
+                    color = "#4CAF50"  # Green for excellent
+                elif value >= 80:
+                    color = "#2196F3"  # Blue for good
+                elif value >= 70:
+                    color = "#FF9800"  # Orange for average
+                else:
+                    color = "#F44336"  # Red for poor
+                    
+                bar.setStyleSheet(f"""
+                    #attendance-bar {{   
+                        background-color: {color};
+                        border-radius: 4px;
+                    }}
+                """)
 
                 # Month label
                 month_label = QLabel(month)
                 month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                month_label.setStyleSheet("color: #000000; font-weight: bold;")
 
-                bar_layout.addStretch(1)
+                # Add widgets to layout with proper spacing
+                bar_layout.addWidget(value_label)
+                bar_layout.addSpacing(5)
+                bar_layout.addStretch(1)  # Push bar to bottom
                 bar_layout.addWidget(bar)
+                bar_layout.addSpacing(5)
                 bar_layout.addWidget(month_label)
 
                 chart_layout.addWidget(bar_container)
@@ -594,29 +680,150 @@ class TeacherDashboardBuilder(Builder):
 
         # Left navigation panel (spans all rows)
         self._main_layout.addWidget(self._nav_panel, 0, 0, 6, 1)
-
-        # Second row: control cards
-        self._main_layout.addWidget(self._control_cards_container, 1, 1, 1, 4)
-
-        # Third row: students table
-        self._main_layout.addWidget(self._students_section, 2, 1, 1, 2)
-        self._main_layout.addWidget(self._events_section, 2, 3, 1, 2)
-
-        # Fourth row: attendance chart and teachers list
-        self._main_layout.addWidget(self._attendance_section, 3, 1, 1, 2)
-        self._main_layout.addWidget(self._teachers_section, 3, 3, 1, 2)
-
-        # Set column and row stretches
+        
+        # Create a stacked widget to hold different content pages
+        self._content_stack = QStackedWidget()
+        
+        # Create page for "inicio" tab (welcome/home)
+        home_page = QWidget()
+        home_layout = QVBoxLayout(home_page)
+        
+        # Create welcome banner for home page
+        welcome_frame = QFrame()
+        welcome_frame.setObjectName("welcome-container")
+        welcome_layout = QHBoxLayout(welcome_frame)
+        
+        # Welcome message in a vertical layout
+        welcome_text_container = QVBoxLayout()
+        
+        welcome_message = QLabel(f"¡Bienvenido, {self._teacher_name}!")
+        welcome_message.setObjectName("welcome-message")
+        welcome_message.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        
+        welcome_description = QLabel("Consulta el rendimiento y asistencia de tus estudiantes")
+        welcome_description.setObjectName("welcome-description")
+        welcome_description.setStyleSheet("color: rgba(255, 255, 255, 0.9); font-size: 16px;")
+        
+        # Action button
+        action_button = QPushButton("Ver Estudiantes")
+        action_button.setObjectName("action-button")
+        action_button.clicked.connect(lambda: self._handle_navigation("estudiantes"))
+        
+        welcome_text_container.addWidget(welcome_message)
+        welcome_text_container.addWidget(welcome_description)
+        welcome_text_container.addStretch(1)
+        welcome_text_container.addWidget(action_button)
+        
+        # Teacher image
+        teacher_image = QLabel("👨‍🏫")
+        teacher_image.setObjectName("teacher-image")
+        teacher_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        teacher_image.setStyleSheet("font-size: 70px; color: white; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);")
+        
+        welcome_layout.addLayout(welcome_text_container, 2)
+        welcome_layout.addWidget(teacher_image, 1)
+        
+        home_layout.addWidget(welcome_frame)
+        
+        # Create welcome info for home page
+        info_frame = QFrame()
+        info_frame.setObjectName("welcome-info-frame")
+        info_layout = QVBoxLayout(info_frame)
+        
+        instructions_title = QLabel("Bienvenido a tu panel de docente")
+        instructions_title.setObjectName("instructions-title")
+        instructions_title.setStyleSheet("color: #3a7bd5; font-size: 18px; font-weight: bold;")
+        info_layout.addWidget(instructions_title)
+        
+        instructions_text = QLabel(
+            "<p>Este es tu panel de control como docente. Aquí podrás:</p>"
+            "<ul>"
+            "<li>Consultar la <b>lista de estudiantes</b> y sus datos</li>"
+            "<li>Ver información sobre otros <b>profesores</b></li>"
+            "<li>Revisar los <b>eventos</b> próximos y la asistencia mensual</li>"
+            "</ul>"
+            "<p>Utiliza la navegación de la izquierda para acceder a las diferentes secciones.</p>"
+        )
+        instructions_text.setWordWrap(True)
+        instructions_text.setObjectName("instructions-text")
+        instructions_text.setStyleSheet("color: #333333; font-size: 14px;")
+        info_layout.addWidget(instructions_text)
+        
+        buttons_layout = QHBoxLayout()
+        
+        students_button = QPushButton("Ver Estudiantes")
+        students_button.setObjectName("quick-access-button")
+        students_button.clicked.connect(lambda: self._handle_navigation("estudiantes"))
+        students_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
+        
+        teachers_button = QPushButton("Ver Profesores")
+        teachers_button.setObjectName("quick-access-button")
+        teachers_button.clicked.connect(lambda: self._handle_navigation("profesores"))
+        teachers_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
+        
+        events_button = QPushButton("Ver Eventos")
+        events_button.setObjectName("quick-access-button")
+        events_button.clicked.connect(lambda: self._handle_navigation("eventos"))
+        events_button.setStyleSheet("background-color: #3a7bd5; color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; font-size: 14px;")
+        
+        buttons_layout.addWidget(students_button)
+        buttons_layout.addWidget(teachers_button)
+        buttons_layout.addWidget(events_button)
+        
+        info_layout.addLayout(buttons_layout)
+        home_layout.addWidget(info_frame)
+        home_layout.addWidget(self._control_cards_container)
+        home_layout.addStretch(1)
+        
+        # Create page for "estudiantes" tab
+        students_page = QWidget()
+        students_layout = QVBoxLayout(students_page)
+        students_layout.addWidget(self._students_section)
+        students_layout.addStretch(1)
+        
+        # Create page for "profesores" tab
+        teachers_page = QWidget()
+        teachers_layout = QVBoxLayout(teachers_page)
+        teachers_layout.addWidget(self._teachers_section)
+        teachers_layout.addStretch(1)
+        
+        # Create page for "eventos" tab
+        events_page = QWidget()
+        events_layout = QVBoxLayout(events_page)
+        events_layout.addWidget(self._events_section)
+        events_layout.addWidget(self._attendance_section)
+        events_layout.addStretch(1)
+        
+        # Add all pages to the stack
+        self._content_stack.addWidget(home_page)       # Index 0: inicio
+        self._content_stack.addWidget(students_page)   # Index 1: estudiantes
+        self._content_stack.addWidget(teachers_page)   # Index 2: profesores
+        self._content_stack.addWidget(events_page)     # Index 3: eventos
+        
+        # Set initial page to estudiantes (matches default in _current_section)
+        self._content_stack.setCurrentIndex(1)
+        
+        # Store the page indices for navigation
+        self._page_indices = {
+            "inicio": 0,
+            "estudiantes": 1,
+            "profesores": 2,
+            "eventos": 3
+        }
+        
+        # Add the stacked widget to the main layout
+        self._main_layout.addWidget(self._content_stack, 1, 1, 5, 4)
+        
+        # Set column stretches
         self._main_layout.setColumnStretch(0, 0)  # Navigation doesn't stretch
-        self._main_layout.setColumnStretch(1, 4)
-        self._main_layout.setColumnStretch(2, 4)
-        self._main_layout.setColumnStretch(3, 4)
-        self._main_layout.setColumnStretch(4, 4)
+        self._main_layout.setColumnStretch(1, 1)
+        self._main_layout.setColumnStretch(2, 1)
+        self._main_layout.setColumnStretch(3, 1)
+        self._main_layout.setColumnStretch(4, 1)
 
+        # Set row stretches
         self._main_layout.setRowStretch(0, 0)  # Header row doesn't stretch
-        self._main_layout.setRowStretch(1, 0)  # Control cards don't stretch
-        self._main_layout.setRowStretch(2, 3)  # Main content stretches more
-        self._main_layout.setRowStretch(3, 3)
+        self._main_layout.setRowStretch(1, 1)  # Content area stretches
 
     def _apply_styles(self) -> None:
         """Apply styles to the dashboard"""
@@ -753,6 +960,15 @@ class TeacherDashboardBuilder(Builder):
                 
                 #students-table {
                     color: #000000;
+                }
+                
+                #welcome-container {
+                    background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+                    color: white;
+                    border-radius: 12px;
+                    padding: 25px;
+                    margin-bottom: 25px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 }
 
                 #students-table QHeaderView::section {
@@ -938,35 +1154,11 @@ class TeacherDashboardBuilder(Builder):
         for btn_id, btn in self._nav_buttons.items():
             btn.setChecked(btn_id == section)
             
-        # Update content visibility based on selected section
-        if section == "estudiantes":
-            if hasattr(self, '_students_section'):
-                self._students_section.setVisible(True)
-            if hasattr(self, '_events_section'):
-                self._events_section.setVisible(False)
-            if hasattr(self, '_teachers_section'):
-                self._teachers_section.setVisible(False)
-            if hasattr(self, '_attendance_section'):
-                self._attendance_section.setVisible(False)
-        elif section == "profesores":
-            if hasattr(self, '_students_section'):
-                self._students_section.setVisible(False)
-            if hasattr(self, '_events_section'):
-                self._events_section.setVisible(False)
-            if hasattr(self, '_teachers_section'):
-                self._teachers_section.setVisible(True)
-            if hasattr(self, '_attendance_section'):
-                self._attendance_section.setVisible(False)
-        elif section == "eventos":
-            if hasattr(self, '_students_section'):
-                self._students_section.setVisible(False)
-            if hasattr(self, '_events_section'):
-                self._events_section.setVisible(True)
-            if hasattr(self, '_teachers_section'):
-                self._teachers_section.setVisible(False)
-            if hasattr(self, '_attendance_section'):
-                self._attendance_section.setVisible(True)
-        
+        # Switch to the appropriate tab using the stacked widget
+        if section in self._page_indices:
+            self._content_stack.setCurrentIndex(self._page_indices[section])
+            self._logger.info(f"Switched to tab index {self._page_indices[section]} for section {section}")
+                
         # Trigger data loading based on the selected section
         if section == "estudiantes" and self._student_viewmodel:
             self._student_viewmodel.load_students()
@@ -1094,26 +1286,43 @@ class TeacherDashboardBuilder(Builder):
                 bar_layout = QVBoxLayout()
                 bar_container.setLayout(bar_layout)
                 
-                # Bar
-                bar = QFrame()
-                bar.setObjectName("attendance-bar")
-                bar.setFixedHeight(int(value * 2))  # Scale value to height
-                
                 # Value label (percentage)
                 value_label = QLabel(f"{value}%")
                 value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                value_label.setObjectName("attendance-value")
                 value_label.setStyleSheet("color: #000000; font-weight: bold; font-size: 13px;")
+                
+                # Apply color based on value
+                if value >= 90:
+                    color = "#4CAF50"  # Green for excellent
+                elif value >= 80:
+                    color = "#2196F3"  # Blue for good
+                elif value >= 70:
+                    color = "#FF9800"  # Orange for average
+                else:
+                    color = "#F44336"  # Red for poor
+                
+                # Bar with color based on value
+                bar = QFrame()
+                bar.setObjectName("attendance-bar")
+                bar.setFixedHeight(int(value * 1.8))  # Scale value to height
+                bar.setStyleSheet(f"""
+                    #attendance-bar {{
+                        background-color: {color};
+                        border-radius: 4px;
+                    }}
+                """)
                 
                 # Month label
                 month_label = QLabel(month)
                 month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                month_label.setObjectName("month-label")
                 month_label.setStyleSheet("color: #000000; font-weight: bold; font-size: 13px;")
                 
-                bar_layout.addStretch(1)
-                bar_layout.addWidget(bar)
+                # Add widgets to layout with proper spacing
                 bar_layout.addWidget(value_label)
+                bar_layout.addSpacing(5)
+                bar_layout.addStretch(1)  # Push bar to bottom
+                bar_layout.addWidget(bar)
+                bar_layout.addSpacing(5)
                 bar_layout.addWidget(month_label)
                 
                 self._chart_layout.addWidget(bar_container)
